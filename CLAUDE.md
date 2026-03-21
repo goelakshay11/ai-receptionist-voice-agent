@@ -27,8 +27,8 @@ Sagar handles inbound calls and manages appointments for men's grooming services
 | Email Confirmations | Gmail (via n8n) | Sends booking/reschedule/cancel emails to client |
 | LLM Model | Claude (via VAPI) | Sagar's reasoning engine |
 
-**n8n instance URL:** `https://carmel-confirmatory-dominatingly.ngrok-free.dev`
-**MCP SSE URL pattern:** `https://carmel-confirmatory-dominatingly.ngrok-free.dev/mcp/[webhook-id]/sse`
+**n8n instance URL:** `https://YOUR_NGROK_DOMAIN.ngrok-free.dev`
+**MCP SSE URL pattern:** `https://YOUR_NGROK_DOMAIN.ngrok-free.dev/mcp/[webhook-id]/sse`
 (Get the exact webhook-id from the MCP Server Trigger node after activation)
 
 ---
@@ -388,13 +388,13 @@ When writing adapted JSONs, use these placeholders for credentials (user will re
 ### Where to find actual credential IDs (in n8n UI)
 n8n stores credential IDs in its Postgres database — they are not in any file on disk.
 To get them:
-1. Open n8n → `https://carmel-confirmatory-dominatingly.ngrok-free.dev`
+1. Open n8n → `https://YOUR_NGROK_DOMAIN.ngrok-free.dev`
 2. Go to **Settings → Credentials**
 3. Click each Google credential → the ID is in the browser URL: `.../credentials/[ID]`
 4. Copy each ID into `.env` (copied from `.env.example`)
 
 **n8n instance details** (from `/N8N - self host local/.env`):
-- Base URL: `https://carmel-confirmatory-dominatingly.ngrok-free.dev`
+- Base URL: `https://YOUR_NGROK_DOMAIN.ngrok-free.dev`
 - Encryption key: stored in `/N8N - self host local/.env` — do NOT copy into this repo
 
 **GitHub safety:** `.env` is in `.gitignore`. Only `.env.example` (with placeholders) is committed.

@@ -25,12 +25,12 @@
       "position": [208, 0],
       "parameters": {
         "operation": "delete",
-        "calendar": { "__rl": true, "value": "7c89c3d720c72c76f803bd1b2a6984dd4b850851eb2c8b56d7d40e12e7c8c071@group.calendar.google.com", "mode": "id" },
+        "calendar": { "__rl": true, "value": "YOUR_GOOGLE_CALENDAR_ID", "mode": "id" },
         "eventId": "={{ $json.eventID }}",
         "options": {}
       },
       "credentials": {
-        "googleCalendarOAuth2Api": { "id": "Hgbr7q8GQoqKxWJC", "name": "Google Calendar account" }
+        "googleCalendarOAuth2Api": { "id": "YOUR_CALENDAR_CREDENTIAL_ID", "name": "Google Calendar account" }
       }
     },
     {
@@ -41,7 +41,7 @@
       "position": [416, 0],
       "parameters": {
         "operation": "update",
-        "documentId": { "__rl": true, "value": "1ACKnwQfBPP5pdW6ApQR28ofAC7OqWEtCLjO6p_K4ipw", "mode": "id" },
+        "documentId": { "__rl": true, "value": "YOUR_GOOGLE_SHEETS_ID", "mode": "id" },
         "sheetName": { "__rl": true, "value": "Appointment Log", "mode": "name" },
         "columns": {
           "mappingMode": "defineBelow",
@@ -60,7 +60,7 @@
         "options": {}
       },
       "credentials": {
-        "googleSheetsOAuth2Api": { "id": "RAF2zpcHHqP20MyA", "name": "Google Sheets account" }
+        "googleSheetsOAuth2Api": { "id": "YOUR_SHEETS_CREDENTIAL_ID", "name": "Google Sheets account" }
       }
     },
     {
@@ -77,7 +77,7 @@
         "options": {}
       },
       "credentials": {
-        "gmailOAuth2": { "id": "R7zU4TkEUFIGs9rg", "name": "Gmail account" }
+        "gmailOAuth2": { "id": "YOUR_GMAIL_CREDENTIAL_ID", "name": "Gmail account" }
       }
     }
   ],

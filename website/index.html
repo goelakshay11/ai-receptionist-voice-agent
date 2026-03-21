@@ -46,8 +46,15 @@
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
 
-    /* ─── Hide VAPI default button ─────────────────────────── */
-    .vapi-btn{width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;position:fixed!important;bottom:0!important;right:0!important;overflow:hidden!important;}
+    /* ─── VAPI button: invisible but clickable ──────────────── */
+    .vapi-btn{
+      width:1px!important;height:1px!important;
+      opacity:0!important;
+      position:fixed!important;bottom:0!important;right:0!important;
+      overflow:hidden!important;
+      /* pointer-events must stay enabled so .click() works */
+      pointer-events:auto!important;
+    }
 
     /* ─── NAV ──────────────────────────────────────────────── */
     nav {
@@ -1047,22 +1054,38 @@
       document.getElementById('voiceOverlay').classList.add('active');
       document.getElementById('voStatus').textContent = 'Connecting to Sagar...';
       document.getElementById('voTranscript').innerHTML =
-        '<div class="transcript-line sagar"><span class="speaker">Sagar</span><span class="text">Connecting…</span></div>';
-      if (vapiInstance) {
-        try { vapiInstance.start(); } catch(e) { console.warn('vapiInstance.start error', e); }
+        '<div class="transcript-line sagar"><span class="speaker">SAGAR</span><span class="text">Connecting...</span></div>';
+
+      // Click the hidden VAPI button to start the call
+      var btn = document.querySelector('.vapi-btn');
+      if (btn) {
+        // Only click if not already in a call
+        if (!btn.classList.contains('vapi-btn-is-active') &&
+            !btn.classList.contains('vapi-btn-is-speaking') &&
+            !btn.classList.contains('vapi-btn-is-loading')) {
+          btn.click();
+        }
       } else {
-        var btn = document.querySelector('.vapi-btn');
-        if (btn) btn.click();
+        document.getElementById('voStatus').textContent = 'Voice SDK still loading... Please wait and try again.';
       }
     }
 
     function closeVoice() {
-      if (vapiInstance) { try { vapiInstance.stop(); } catch(e) {} }
+      // Click the VAPI button to end the call if active
+      var btn = document.querySelector('.vapi-btn-is-active, .vapi-btn-is-speaking, .vapi-btn-is-loading');
+      if (btn) btn.click();
       document.getElementById('voiceOverlay').classList.remove('active', 'connected');
     }
 
     function endCall() {
-      if (vapiInstance) { try { vapiInstance.stop(); } catch(e) {} }
+      // Click the VAPI button to end the call
+      var btn = document.querySelector('.vapi-btn-is-active, .vapi-btn-is-speaking');
+      if (btn) btn.click();
+      document.getElementById('voStatus').textContent = 'Call ended';
+      document.getElementById('voiceOverlay').classList.remove('connected');
+      setTimeout(function() {
+        document.getElementById('voiceOverlay').classList.remove('active');
+      }, 1500);
     }
 
     function addLine(speaker, text) {
@@ -1075,8 +1098,8 @@
     }
 
     /* ── VAPI SDK ── */
-    var VAPI_KEY = '5f73b5e0-a495-4e3d-bae6-7fb4dbcb505b';
-    var ASST_ID  = '55c85095-48a8-4741-96f2-34e4968934eb';
+    var VAPI_KEY = 'YOUR_VAPI_PUBLIC_KEY';  // Replace with your VAPI Public Key
+    var ASST_ID  = 'YOUR_VAPI_ASSISTANT_ID';  // Replace with your VAPI Assistant ID
     var vapiInstance = null;
 
     (function(d, t) {
@@ -1090,12 +1113,12 @@
           assistant: ASST_ID,
           config: {
             position: 'bottom-right',
-            offset: '40px',
-            width: '0px',
-            height: '0px',
-            idle:    { color: 'rgba(0,0,0,0)', type: 'round', title: '', subtitle: '' },
-            loading: { color: 'rgba(0,0,0,0)', type: 'round', title: '', subtitle: '' },
-            active:  { color: 'rgba(0,0,0,0)', type: 'round', title: '', subtitle: '' }
+            offset: '20px',
+            width: '50px',
+            height: '50px',
+            idle:    { color: 'rgb(201,168,76)', type: 'round', title: '', subtitle: '' },
+            loading: { color: 'rgb(154,122,53)', type: 'round', title: '', subtitle: '' },
+            active:  { color: 'rgb(196,64,64)',  type: 'round', title: '', subtitle: '' }
           }
         });
         if (vapiInstance) {

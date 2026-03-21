@@ -22,13 +22,13 @@
       "position": [48, -16],
       "alwaysOutputData": true,
       "parameters": {
-        "documentId": { "__rl": true, "value": "1ACKnwQfBPP5pdW6ApQR28ofAC7OqWEtCLjO6p_K4ipw", "mode": "id" },
+        "documentId": { "__rl": true, "value": "YOUR_GOOGLE_SHEETS_ID", "mode": "id" },
         "sheetName": { "__rl": true, "value": "Clients", "mode": "name" },
         "filtersUI": { "values": [{ "lookupColumn": "Phone", "lookupValue": "={{ $json.phone }}" }] },
         "options": {}
       },
       "credentials": {
-        "googleSheetsOAuth2Api": { "id": "RAF2zpcHHqP20MyA", "name": "Google Sheets account" }
+        "googleSheetsOAuth2Api": { "id": "YOUR_SHEETS_CREDENTIAL_ID", "name": "Google Sheets account" }
       }
     },
     {
@@ -54,13 +54,13 @@
       "position": [432, -112],
       "alwaysOutputData": true,
       "parameters": {
-        "documentId": { "__rl": true, "value": "1ACKnwQfBPP5pdW6ApQR28ofAC7OqWEtCLjO6p_K4ipw", "mode": "id" },
+        "documentId": { "__rl": true, "value": "YOUR_GOOGLE_SHEETS_ID", "mode": "id" },
         "sheetName": { "__rl": true, "value": "Appointment Log", "mode": "name" },
         "filtersUI": { "values": [{ "lookupColumn": "Phone", "lookupValue": "={{ $json.Phone }}" }] },
         "options": {}
       },
       "credentials": {
-        "googleSheetsOAuth2Api": { "id": "RAF2zpcHHqP20MyA", "name": "Google Sheets account" }
+        "googleSheetsOAuth2Api": { "id": "YOUR_SHEETS_CREDENTIAL_ID", "name": "Google Sheets account" }
       }
     },
     {

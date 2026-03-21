@@ -22,7 +22,7 @@
       "position": [208, 0],
       "parameters": {
         "operation": "append",
-        "documentId": { "__rl": true, "value": "1ACKnwQfBPP5pdW6ApQR28ofAC7OqWEtCLjO6p_K4ipw", "mode": "id" },
+        "documentId": { "__rl": true, "value": "YOUR_GOOGLE_SHEETS_ID", "mode": "id" },
         "sheetName": { "__rl": true, "value": "Call Log", "mode": "name" },
         "columns": {
           "mappingMode": "defineBelow",
@@ -43,7 +43,7 @@
         "options": {}
       },
       "credentials": {
-        "googleSheetsOAuth2Api": { "id": "RAF2zpcHHqP20MyA", "name": "Google Sheets account" }
+        "googleSheetsOAuth2Api": { "id": "YOUR_SHEETS_CREDENTIAL_ID", "name": "Google Sheets account" }
       }
     }
   ],

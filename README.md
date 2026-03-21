@@ -50,8 +50,9 @@ Customer (Phone/Web)
 | CRM | Google Sheets | Clients tab, Appointment Log, Call Log |
 | Scheduling | Google Calendar | Salon-side appointment calendar |
 | Email | Gmail (via n8n) | Booking/reschedule/cancellation confirmations |
-| Tunneling | ngrok | Exposes local n8n to VAPI webhooks |
-| Website | HTML/CSS/JS | Browser-based voice call interface |
+| Tunneling (n8n) | ngrok | Exposes local n8n to VAPI webhooks |
+| Tunneling (Website) | Cloudflare Tunnel | Free public URL for the booking website |
+| Website | HTML/CSS/JS + VAPI Web SDK | Browser-based voice booking interface |
 
 ---
 
@@ -74,10 +75,14 @@ Customer (Phone/Web)
 
 ```
 naturals-salon-ai-receptionist/
-├── CLAUDE.md                          # Project context for Claude Code
 ├── README.md                          # This file
+├── CLAUDE.md                          # Project context for Claude Code
+├── startup.sh                         # Starts all services (n8n, ngrok, website, cloudflared)
+├── stop.sh                            # Stops all services
+├── .env.example                       # Credential placeholders (copy to .env)
+├── .gitignore                         # Excludes .env, credentials, screenshots
 ├── n8n-workflows/
-│   ├── source/                        # Nate Herk's original JSONs (reference only)
+│   ├── source/                        # Nate Herk's original JSONs (reference only, DO NOT MODIFY)
 │   │   ├── Vapi MCP Server.json
 │   │   ├── Client Lookup.json
 │   │   ├── New Client CRM.json
@@ -88,24 +93,24 @@ naturals-salon-ai-receptionist/
 │   │   ├── Delete Appointment.json
 │   │   └── Hercules Receptionist EOC Report.json
 │   └── adapted/                       # Adapted workflows for Naturals Salon
-│       ├── MCP Server.json
-│       ├── 01-client-lookup.json
-│       ├── 02-new-client-crm.json
-│       ├── 03-check-availability.json
-│       ├── 04-book-event.json
-│       ├── 05-lookup-appointment.json
-│       ├── 06-update-appointment.json
-│       ├── 07-delete-appointment.json
-│       ├── 08-pricing-info.json
-│       └── eoc-report.json
+│       ├── MCP Server.json            # MCP Server Trigger (routes to all tools)
+│       ├── 01-client-lookup.json      # Lookup client by phone or email
+│       ├── 02-new-client-crm.json     # Create new client in CRM
+│       ├── 03-check-availability.json # Check Google Calendar for free slots
+│       ├── 04-book-event.json         # Book appointment + log + email
+│       ├── 05-lookup-appointment.json # Find existing appointments
+│       ├── 06-update-appointment.json # Reschedule appointment + email
+│       ├── 07-delete-appointment.json # Cancel appointment + email
+│       ├── 08-pricing-info.json       # Return services & pricing
+│       └── eoc-report.json            # End-of-call report → Call Log sheet
 ├── vapi/
-│   └── system-prompt.md              # Sagar's full VAPI system prompt
-├── docs/
-│   └── build-plan.md                 # Phase-by-phase build checklist
+│   └── system-prompt.md               # Sagar's complete VAPI system prompt
+├── website/
+│   └── index.html                     # Booking website with VAPI Web SDK voice integration
 ├── learnings/
-│   └── README.md                     # Detailed build learnings and debugging notes
-├── .env.example                      # Credential placeholders (copy to .env)
-└── startup.sh                        # Starts n8n + ngrok
+│   └── README.md                      # Detailed build learnings and debugging notes
+└── docs/
+    └── build-plan.md                  # Phase-by-phase build checklist
 ```
 
 ---
@@ -114,53 +119,45 @@ naturals-salon-ai-receptionist/
 
 ### Prerequisites
 
-- Docker (for self-hosted n8n)
-- ngrok account and auth token
-- VAPI account
-- Google Cloud project with Sheets, Calendar, and Gmail APIs enabled
-- Anthropic API key (or use VAPI's built-in Claude access)
+- Docker Desktop (for self-hosted n8n)
+- [ngrok](https://ngrok.com/) — tunnels n8n to the internet (free tier works)
+- [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) — tunnels website to the internet (free, no account needed)
+- [VAPI](https://vapi.ai/) account — voice AI platform
+- Google Cloud project with Sheets, Calendar, and Gmail OAuth2 APIs enabled
+- Python 3 (for the website's local HTTP server)
 
-### Steps
+### Quick Start
 
-1. **Clone the repo**
+```bash
+# 1. Clone the repo
+git clone https://github.com/goelakshay11/ai-receptionist-voice-agent.git
+cd ai-receptionist-voice-agent
 
-   ```bash
-   git clone <repo-url>
-   cd naturals-salon-ai-receptionist
-   ```
+# 2. Install tunneling tools
+brew install ngrok cloudflared
 
-2. **Configure environment variables**
+# 3. Configure environment
+cp .env.example .env
+# Edit .env with your actual credential IDs
 
-   ```bash
-   cp .env.example .env
-   # Fill in your actual credential IDs in .env
-   ```
+# 4. Start all services
+chmod +x startup.sh stop.sh
+./startup.sh
+# This starts: n8n (Docker) → ngrok → website (port 4000) → Cloudflare Tunnel
 
-3. **Start n8n and ngrok**
+# 5. Stop all services
+./stop.sh
+```
 
-   ```bash
-   bash startup.sh
-   ```
+### Detailed Setup
 
-4. **Import n8n workflows**
+1. **Import n8n workflows** — Open n8n at your ngrok URL → Import each JSON from `n8n-workflows/adapted/` (01 through 08, then eoc-report, then MCP Server) → Re-connect Google OAuth2 credentials in each workflow → Activate all workflows
 
-   - Open n8n at your ngrok URL
-   - Import each JSON from `n8n-workflows/adapted/` in order (01 through 08, then eoc-report, then MCP Server)
-   - Re-connect Google credentials in each workflow node
-   - Activate each workflow
+2. **Configure VAPI** — Create a new assistant → Set LLM model → Paste `vapi/system-prompt.md` as the system prompt → Add 8 function tools (one per sub-workflow webhook URL) → Enable `endCall` default tool → Set `maxDurationSeconds: 720` → Add EOC webhook → Set `endCallFunctionEnabled: true`
 
-5. **Configure VAPI**
+3. **Configure website** — Edit `website/index.html` and replace `YOUR_VAPI_PUBLIC_KEY` and `YOUR_VAPI_ASSISTANT_ID` with your actual VAPI credentials
 
-   - Create a new VAPI assistant
-   - Set LLM to Claude Sonnet
-   - Paste contents of `vapi/system-prompt.md` as the system prompt
-   - Add 8 function tools (one per sub-workflow), pointing each to its n8n webhook URL
-   - Add EOC webhook pointing to the EOC Report workflow URL
-
-6. **Test**
-
-   - Use VAPI's test console to make a test call
-   - Try booking, rescheduling, cancellation, and pricing FAQ flows
+4. **Test** — Open the Cloudflare Tunnel URL in your browser → Click "Book Appointment" → Talk to Sagar
 
 ---
 
