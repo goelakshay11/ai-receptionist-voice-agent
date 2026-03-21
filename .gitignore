@@ -1,0 +1,43 @@
+# Environment files (contain secrets)
+.env
+.env.local
+
+# Error screenshots (personal testing artifacts)
+Error screenshots/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Node modules (if any)
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+Thumbs.db
+*.swp
+*.swo
+
+# Credentials file
+credentials.json
+
+# n8n local data
+.n8n/
+
+# Logs
+*.log
+/tmp/
+
+# Build artifacts
+dist/
+build/
+
+# Original tutorial PDF and zip (copyrighted content)
+*.pdf
+*.zip
+
+# MCP config (may contain API keys)
+.mcp.json

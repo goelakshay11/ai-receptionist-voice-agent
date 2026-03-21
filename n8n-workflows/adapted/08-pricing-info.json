@@ -1,0 +1,38 @@
+{
+  "name": "08 - Pricing Info",
+  "n8nId": "xxszPNVc24Fng14t",
+  "nodes": [
+    {
+      "id": "a1b2c3d4-pricing-trigger-0001",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0],
+      "parameters": {}
+    },
+    {
+      "id": "e5f6a7b8-pricing-set-node-001",
+      "name": "Return Pricing",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [208, 0],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "p1",
+              "name": "message",
+              "value": "Naturals Salon Sarjapura — Men's Services:\n• Haircut — ₹300, 45 mins\n• Beard Trim — ₹150, 20 mins\n• Haircut + Beard — ₹400, 65 mins\n• Head Massage — ₹200, 30 mins\n• Face Cleanup — ₹250, 30 mins\n• Haircut + Head Massage — ₹500, 75 mins\n• Full Grooming (Haircut + Beard + Head Massage) — ₹600, 95 mins",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": { "main": [[{ "node": "Return Pricing", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

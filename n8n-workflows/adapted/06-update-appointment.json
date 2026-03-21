@@ -1,0 +1,92 @@
+{
+  "name": "06 - Update Appointment",
+  "n8nId": "ULf6vDNGWKYHJFOn",
+  "nodes": [
+    {
+      "id": "379dc3b8-3e5e-4be0-ac95-7c1f7aed263b",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0],
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            { "name": "startTime" }, { "name": "endTime" },
+            { "name": "eventID" }, { "name": "email" }, { "name": "name" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "4afce31c-7e3e-48e6-bc70-f2d657aeeb9f",
+      "name": "Update an event",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [208, 0],
+      "parameters": {
+        "operation": "update",
+        "calendar": { "__rl": true, "value": "7c89c3d720c72c76f803bd1b2a6984dd4b850851eb2c8b56d7d40e12e7c8c071@group.calendar.google.com", "mode": "id" },
+        "eventId": "={{ $json.eventID }}",
+        "updateFields": { "end": "={{ $json.endTime }}", "start": "={{ $json.startTime }}" }
+      },
+      "credentials": {
+        "googleCalendarOAuth2Api": { "id": "Hgbr7q8GQoqKxWJC", "name": "Google Calendar account" }
+      }
+    },
+    {
+      "id": "e329ad08-064c-4bcb-bddc-ca56472fdab5",
+      "name": "Update row in sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [416, 0],
+      "parameters": {
+        "operation": "update",
+        "documentId": { "__rl": true, "value": "1ACKnwQfBPP5pdW6ApQR28ofAC7OqWEtCLjO6p_K4ipw", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Appointment Log", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID": "={{ $json.id }}",
+            "Date": "={{ $('When Executed by Another Workflow').item.json.startTime }}",
+            "Notes": "=Moved to {{ $('When Executed by Another Workflow').item.json.startTime }}"
+          },
+          "matchingColumns": ["ID"],
+          "schema": [
+            { "id": "ID", "displayName": "ID", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true },
+            { "id": "Date", "displayName": "Date", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true },
+            { "id": "Notes", "displayName": "Notes", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "RAF2zpcHHqP20MyA", "name": "Google Sheets account" }
+      }
+    },
+    {
+      "id": "c2345abc-upd-gmail-node-0001",
+      "name": "Send Reschedule Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [624, 0],
+      "parameters": {
+        "sendTo": "={{ $('When Executed by Another Workflow').item.json.email }}",
+        "subject": "Appointment Rescheduled — Naturals Salon Sarjapura",
+        "emailType": "text",
+        "message": "=Hi {{ $('When Executed by Another Workflow').item.json.name }},\n\nYour appointment has been rescheduled.\n\nNew Date & Time: {{ $('When Executed by Another Workflow').item.json.startTime }}\n\nAddress: Naturals Salon, Sarjapura, Bangalore\n\nSee you soon!\n— Sagar, Naturals Salon",
+        "options": {}
+      },
+      "credentials": {
+        "gmailOAuth2": { "id": "R7zU4TkEUFIGs9rg", "name": "Gmail account" }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": { "main": [[{ "node": "Update an event", "type": "main", "index": 0 }]] },
+    "Update an event": { "main": [[{ "node": "Update row in sheet", "type": "main", "index": 0 }]] },
+    "Update row in sheet": { "main": [[{ "node": "Send Reschedule Email", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

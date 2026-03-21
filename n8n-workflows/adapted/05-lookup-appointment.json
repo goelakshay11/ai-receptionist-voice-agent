@@ -1,0 +1,40 @@
+{
+  "name": "05 - Lookup Appointment",
+  "n8nId": "t4cC5GQyRh6l13Mq",
+  "nodes": [
+    {
+      "id": "1f8fed34-c6b9-4c46-9080-28242eafa477",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0],
+      "parameters": {
+        "workflowInputs": {
+          "values": [{ "name": "afterTime" }, { "name": "beforeTime" }]
+        }
+      }
+    },
+    {
+      "id": "d828a462-b499-4a8b-8a51-2444b4157f01",
+      "name": "Get many events",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [208, 0],
+      "parameters": {
+        "operation": "getAll",
+        "calendar": { "__rl": true, "value": "7c89c3d720c72c76f803bd1b2a6984dd4b850851eb2c8b56d7d40e12e7c8c071@group.calendar.google.com", "mode": "id" },
+        "returnAll": true,
+        "timeMin": "={{ $json.afterTime }}",
+        "timeMax": "={{ $json.beforeTime }}",
+        "options": {}
+      },
+      "credentials": {
+        "googleCalendarOAuth2Api": { "id": "Hgbr7q8GQoqKxWJC", "name": "Google Calendar account" }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": { "main": [[{ "node": "Get many events", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

@@ -1,0 +1,212 @@
+{
+  "name": "Sagar MCP Server",
+  "n8nId": "Ol3o0zPSKQP3ETFZ",
+  "nodes": [
+    {
+      "id": "mcp-trigger-sagar-0001",
+      "name": "MCP Server Trigger",
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "parameters": { "path": "sagar-mcp-server" }
+    },
+    {
+      "id": "mcp-tool-01-client-lookup",
+      "name": "Call 'Client Lookup'",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [-400, 240],
+      "parameters": {
+        "description": "Call this tool to look up a caller by phone number in the CRM. Returns whether the client exists and their appointment history.",
+        "workflowId": { "__rl": true, "value": "V9V1CniK1r3oTvet", "mode": "id" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": { "phone": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('phone', `The caller's mobile phone number in international format, e.g. +919876543210`, 'string') }}" },
+          "matchingColumns": ["phone"],
+          "schema": [{ "id": "phone", "displayName": "phone", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" }]
+        }
+      }
+    },
+    {
+      "id": "mcp-tool-02-new-client",
+      "name": "Call 'New Client CRM'",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [-200, 240],
+      "parameters": {
+        "description": "Call this tool to create a new client entry in the CRM. Use after confirming the caller is a new client.",
+        "workflowId": { "__rl": true, "value": "OgZgHAVPrYetDIop", "mode": "id" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "phone": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('phone', `Client phone number`, 'string') }}",
+            "name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('name', `Client full name`, 'string') }}",
+            "email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('email', `Client email address`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            { "id": "phone", "displayName": "phone", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" },
+            { "id": "name", "displayName": "name", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" },
+            { "id": "email", "displayName": "email", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "mcp-tool-03-check-avail",
+      "name": "Call 'Check Availability'",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [0, 240],
+      "parameters": {
+        "description": "Call this tool to check if a time window is available on the salon calendar. Returns busy slots or confirms the window is free.",
+        "workflowId": { "__rl": true, "value": "z6DesCwg3EcRJSOm", "mode": "id" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "afterTime": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('afterTime', `Start of time window in ISO 8601 format`, 'string') }}",
+            "beforeTime": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('beforeTime', `End of time window in ISO 8601 format`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            { "id": "afterTime", "displayName": "afterTime", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" },
+            { "id": "beforeTime", "displayName": "beforeTime", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "mcp-tool-04-book-event",
+      "name": "Call 'Book Event'",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [200, 240],
+      "parameters": {
+        "description": "Call this tool to book an appointment on the salon calendar, log it to the CRM, and send a confirmation email to the client.",
+        "workflowId": { "__rl": true, "value": "JGUEl68kBFICuGm0", "mode": "id" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "startTime": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('startTime', `Appointment start time in ISO 8601 format`, 'string') }}",
+            "endTime": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('endTime', `Appointment end time in ISO 8601 format, calculated from startTime + service duration`, 'string') }}",
+            "phone": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('phone', `Client phone number`, 'string') }}",
+            "email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('email', `Client email address`, 'string') }}",
+            "eventSummary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('eventSummary', `Service name, e.g. Haircut + Beard — Naturals Salon`, 'string') }}",
+            "name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('name', `Client name`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            { "id": "startTime", "displayName": "startTime", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" },
+            { "id": "endTime", "displayName": "endTime", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" },
+            { "id": "phone", "displayName": "phone", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" },
+            { "id": "email", "displayName": "email", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" },
+            { "id": "eventSummary", "displayName": "eventSummary", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" },
+            { "id": "name", "displayName": "name", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "mcp-tool-05-lookup-appt",
+      "name": "Call 'Lookup Appointment'",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [-400, 440],
+      "parameters": {
+        "description": "Call this tool to look up existing appointments in a time window. Must be called before rescheduling or cancelling to get the event ID.",
+        "workflowId": { "__rl": true, "value": "t4cC5GQyRh6l13Mq", "mode": "id" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "afterTime": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('afterTime', `Start of time window in ISO 8601 format`, 'string') }}",
+            "beforeTime": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('beforeTime', `End of time window in ISO 8601 format`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            { "id": "afterTime", "displayName": "afterTime", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" },
+            { "id": "beforeTime", "displayName": "beforeTime", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "mcp-tool-06-update-appt",
+      "name": "Call 'Update Appointment'",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [-200, 440],
+      "parameters": {
+        "description": "Call this tool to reschedule an existing appointment to a new time. Requires the event ID from Lookup Appointment. Sends a reschedule email to the client.",
+        "workflowId": { "__rl": true, "value": "ULf6vDNGWKYHJFOn", "mode": "id" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "startTime": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('startTime', `New appointment start time in ISO 8601 format`, 'string') }}",
+            "endTime": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('endTime', `New appointment end time in ISO 8601 format`, 'string') }}",
+            "eventID": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('eventID', `Google Calendar event ID from Lookup Appointment`, 'string') }}",
+            "email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('email', `Client email address`, 'string') }}",
+            "name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('name', `Client name`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            { "id": "startTime", "displayName": "startTime", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" },
+            { "id": "endTime", "displayName": "endTime", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" },
+            { "id": "eventID", "displayName": "eventID", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" },
+            { "id": "email", "displayName": "email", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" },
+            { "id": "name", "displayName": "name", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "mcp-tool-07-delete-appt",
+      "name": "Call 'Delete Appointment'",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [0, 440],
+      "parameters": {
+        "description": "Call this tool to cancel an existing appointment. Requires the event ID from Lookup Appointment. Sends a cancellation email to the client.",
+        "workflowId": { "__rl": true, "value": "1ItHHrt02x9rxkCT", "mode": "id" },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "eventID": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('eventID', `Google Calendar event ID from Lookup Appointment`, 'string') }}",
+            "email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('email', `Client email address`, 'string') }}",
+            "name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('name', `Client name`, 'string') }}",
+            "startTime": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('startTime', `Original appointment start time for reference in cancellation email`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            { "id": "eventID", "displayName": "eventID", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" },
+            { "id": "email", "displayName": "email", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" },
+            { "id": "name", "displayName": "name", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" },
+            { "id": "startTime", "displayName": "startTime", "required": true, "defaultMatch": false, "display": true, "canBeUsedToMatch": true, "type": "string" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "mcp-tool-08-pricing",
+      "name": "Call 'Pricing Info'",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [200, 440],
+      "parameters": {
+        "description": "Call this tool to get the full services menu and pricing for Naturals Salon Sarjapura. Returns all services with prices and durations.",
+        "workflowId": { "__rl": true, "value": "xxszPNVc24Fng14t", "mode": "id" },
+        "workflowInputs": { "mappingMode": "defineBelow", "value": {}, "matchingColumns": [], "schema": [] }
+      }
+    }
+  ],
+  "connections": {
+    "Call 'Client Lookup'": { "ai_tool": [[{ "node": "MCP Server Trigger", "type": "ai_tool", "index": 0 }]] },
+    "Call 'New Client CRM'": { "ai_tool": [[{ "node": "MCP Server Trigger", "type": "ai_tool", "index": 0 }]] },
+    "Call 'Check Availability'": { "ai_tool": [[{ "node": "MCP Server Trigger", "type": "ai_tool", "index": 0 }]] },
+    "Call 'Book Event'": { "ai_tool": [[{ "node": "MCP Server Trigger", "type": "ai_tool", "index": 0 }]] },
+    "Call 'Lookup Appointment'": { "ai_tool": [[{ "node": "MCP Server Trigger", "type": "ai_tool", "index": 0 }]] },
+    "Call 'Update Appointment'": { "ai_tool": [[{ "node": "MCP Server Trigger", "type": "ai_tool", "index": 0 }]] },
+    "Call 'Delete Appointment'": { "ai_tool": [[{ "node": "MCP Server Trigger", "type": "ai_tool", "index": 0 }]] },
+    "Call 'Pricing Info'": { "ai_tool": [[{ "node": "MCP Server Trigger", "type": "ai_tool", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

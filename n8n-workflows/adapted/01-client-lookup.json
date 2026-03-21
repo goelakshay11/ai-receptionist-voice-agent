@@ -1,0 +1,112 @@
+{
+  "name": "01 - Client Lookup",
+  "n8nId": "V9V1CniK1r3oTvet",
+  "nodes": [
+    {
+      "id": "e463fcf7-f76f-4dca-8005-c13ddb5500b5",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [-160, -16],
+      "parameters": {
+        "workflowInputs": {
+          "values": [{ "name": "phone" }]
+        }
+      }
+    },
+    {
+      "id": "efdafb89-9887-4c91-9d08-8e06eeee9b28",
+      "name": "Client Lookup",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [48, -16],
+      "alwaysOutputData": true,
+      "parameters": {
+        "documentId": { "__rl": true, "value": "1ACKnwQfBPP5pdW6ApQR28ofAC7OqWEtCLjO6p_K4ipw", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Clients", "mode": "name" },
+        "filtersUI": { "values": [{ "lookupColumn": "Phone", "lookupValue": "={{ $json.phone }}" }] },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "RAF2zpcHHqP20MyA", "name": "Google Sheets account" }
+      }
+    },
+    {
+      "id": "db0c67f7-f1c0-427c-a51f-11606de0bbf8",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [224, -16],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [{ "id": "92b8d39f-ffdc-4bfe-9477-576907a28ac3", "leftValue": "={{ $json.Phone }}", "rightValue": "", "operator": { "type": "string", "operation": "exists" } }],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "7aa0a96a-1c58-4ab0-95ac-d13e3fe156cc",
+      "name": "Get Info",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [432, -112],
+      "alwaysOutputData": true,
+      "parameters": {
+        "documentId": { "__rl": true, "value": "1ACKnwQfBPP5pdW6ApQR28ofAC7OqWEtCLjO6p_K4ipw", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Appointment Log", "mode": "name" },
+        "filtersUI": { "values": [{ "lookupColumn": "Phone", "lookupValue": "={{ $json.Phone }}" }] },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "RAF2zpcHHqP20MyA", "name": "Google Sheets account" }
+      }
+    },
+    {
+      "id": "a2955f15-27d7-44ba-816c-1bd7703b0591",
+      "name": "If1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [640, -112],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [{ "id": "6ca6414a-39cb-4ee9-8250-f753f14ebf35", "leftValue": "={{ $json.Phone }}", "rightValue": "", "operator": { "type": "string", "operation": "exists" } }],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "d5dcee2b-3ac4-4749-952b-b920069305a8",
+      "name": "Message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [848, -16],
+      "parameters": {
+        "assignments": { "assignments": [{ "id": "b134f4e0-755d-46ca-aed5-0ac130407bd7", "name": "message", "value": "This client exists in the CRM. However, they have no previous appointments with Naturals Salon Sarjapura.", "type": "string" }] },
+        "options": {}
+      }
+    },
+    {
+      "id": "656f7436-0590-4b28-976c-5391b9a9e70f",
+      "name": "New Client Message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [432, 80],
+      "parameters": {
+        "assignments": { "assignments": [{ "id": "5c8dc1cb-0b90-4363-b0c9-e86713560ef0", "name": "message", "value": "This is a new client, they don't exist in the CRM", "type": "string" }] },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": { "main": [[{ "node": "Client Lookup", "type": "main", "index": 0 }]] },
+    "Client Lookup": { "main": [[{ "node": "If", "type": "main", "index": 0 }]] },
+    "If": { "main": [[{ "node": "Get Info", "type": "main", "index": 0 }], [{ "node": "New Client Message", "type": "main", "index": 0 }]] },
+    "Get Info": { "main": [[{ "node": "If1", "type": "main", "index": 0 }]] },
+    "If1": { "main": [[], [{ "node": "Message", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

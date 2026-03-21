@@ -1,0 +1,54 @@
+{
+  "name": "EOC Report — Sagar Receptionist",
+  "n8nId": "vYxKCyrOzl0KCRs2",
+  "nodes": [
+    {
+      "id": "c15cb777-b83a-4b92-abbe-12ee54aedbea",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [0, 0],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sagar-eoc-report",
+        "options": {}
+      }
+    },
+    {
+      "id": "5a4cf12a-b8eb-41cf-8a1c-32002eec7bfc",
+      "name": "Append row in sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [208, 0],
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "value": "1ACKnwQfBPP5pdW6ApQR28ofAC7OqWEtCLjO6p_K4ipw", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Call Log", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.format('yyyy-MM-dd hh:mm a') }}",
+            "Summary": "={{ $json.body.message.analysis.summary }}",
+            "Outcome": "={{ $json.body.message.analysis.structuredData.Outcome }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            { "id": "Date", "displayName": "Date", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true },
+            { "id": "Summary", "displayName": "Summary", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true },
+            { "id": "Outcome", "displayName": "Outcome", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "RAF2zpcHHqP20MyA", "name": "Google Sheets account" }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Append row in sheet", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}

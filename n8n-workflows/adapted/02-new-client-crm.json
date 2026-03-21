@@ -1,0 +1,54 @@
+{
+  "name": "02 - New Client CRM",
+  "n8nId": "OgZgHAVPrYetDIop",
+  "nodes": [
+    {
+      "id": "97ca529e-933e-4810-a823-c7580431eb81",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [0, 0],
+      "parameters": {
+        "workflowInputs": {
+          "values": [{ "name": "phone" }, { "name": "name" }, { "name": "email" }]
+        }
+      }
+    },
+    {
+      "id": "64af8943-1f0a-4031-9754-b1651ea53c13",
+      "name": "Append row in sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [208, 0],
+      "parameters": {
+        "operation": "append",
+        "documentId": { "__rl": true, "value": "1ACKnwQfBPP5pdW6ApQR28ofAC7OqWEtCLjO6p_K4ipw", "mode": "id" },
+        "sheetName": { "__rl": true, "value": "Clients", "mode": "name" },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Phone": "={{ $json.phone }}",
+            "Name": "={{ $json.name }}",
+            "Email": "={{ $json.email }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            { "id": "Phone", "displayName": "Phone", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true },
+            { "id": "Name", "displayName": "Name", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true },
+            { "id": "Email", "displayName": "Email", "required": false, "defaultMatch": false, "display": true, "type": "string", "canBeUsedToMatch": true }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": { "id": "RAF2zpcHHqP20MyA", "name": "Google Sheets account" }
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": { "main": [[{ "node": "Append row in sheet", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" }
+}
