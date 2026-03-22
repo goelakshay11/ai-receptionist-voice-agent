@@ -648,6 +648,18 @@
       opacity: 1;
       pointer-events: all;
     }
+    #callUI {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      width: 100%;
+      max-width: 700px;
+    }
+    #callUI.visible {
+      display: flex;
+    }
     .vo-close {
       position: absolute;
       top: 28px; right: 36px;
@@ -1025,7 +1037,7 @@
     </div>
 
     <!-- CALL UI (hidden until call starts) -->
-    <div id="callUI" style="display:none;">
+    <div id="callUI">
       <div class="vo-title">Naturals Salon Receptionist</div>
       <p id="voStatus">Connecting to Sagar...</p>
       <div class="vo-orb-wrap">
@@ -1222,24 +1234,33 @@
       // so we pass the info and let the default VAPI button start the call
       // The firstMessage override happens via the SDK config
 
-      // VAPI ESM module will override this function — see <script type="module"> below
-      document.getElementById('voStatus').textContent = 'Loading voice SDK...';
+      // Wait for ESM module to be ready, then call it
+      function waitAndStart() {
+        if (window._vapiReady) {
+          window._vapiStartCall(customGreeting);
+        } else {
+          document.getElementById('voStatus').textContent = 'Loading voice SDK...';
+          setTimeout(waitAndStart, 500);
+        }
+      }
+      waitAndStart();
     }
 
-    // These will be overridden by the VAPI ESM module
     function closeVoice() {
+      if (window.vapiClient) try { window.vapiClient.stop(); } catch(e) {}
       document.getElementById('voiceOverlay').classList.remove('active', 'connected');
       document.getElementById('preCallForm').style.display = 'flex';
-      document.getElementById('callUI').style.display = 'none';
+      document.getElementById('callUI').className = '';
     }
 
     function endCall() {
+      if (window.vapiClient) try { window.vapiClient.stop(); } catch(e) {}
       document.getElementById('voStatus').textContent = 'Call ended';
       document.getElementById('voiceOverlay').classList.remove('connected');
       setTimeout(function() {
         document.getElementById('voiceOverlay').classList.remove('active');
         document.getElementById('preCallForm').style.display = 'flex';
-        document.getElementById('callUI').style.display = 'none';
+        document.getElementById('callUI').className = '';
       }, 1500);
     }
 
@@ -1280,7 +1301,7 @@
       setTimeout(function() {
         document.getElementById('voiceOverlay').classList.remove('active');
         document.getElementById('preCallForm').style.display = 'flex';
-        document.getElementById('callUI').style.display = 'none';
+        document.getElementById('callUI').className = '';
       }, 2500);
     });
 
@@ -1300,10 +1321,13 @@
       }
     });
 
-    // Override the startCallWithGreeting function with proper VAPI integration
-    window.startCallWithGreeting = function(customGreeting) {
+    // Mark SDK as ready and provide the start function
+    window._vapiReady = true;
+    window.vapiClient = vapi;
+
+    window._vapiStartCall = function(customGreeting) {
       document.getElementById('preCallForm').style.display = 'none';
-      document.getElementById('callUI').style.display = 'flex';
+      document.getElementById('callUI').className = 'visible';
       document.getElementById('voStatus').textContent = 'Connecting to Sagar...';
       document.getElementById('voTranscript').innerHTML =
         '<div class="transcript-line sagar"><span class="speaker">SAGAR</span><span class="text">Connecting...</span></div>';
@@ -1326,30 +1350,10 @@
         };
       }
 
-      // Start call with overrides
       vapi.start(ASST_ID, overrides).catch(function(err) {
         console.error('Call start error:', err);
-        document.getElementById('voStatus').textContent = 'Could not start call. Please check microphone permissions.';
+        document.getElementById('voStatus').textContent = 'Could not start call. Please allow microphone access.';
       });
-    };
-
-    // Override closeVoice and endCall with direct vapi.stop()
-    window.closeVoice = function() {
-      try { vapi.stop(); } catch(e) {}
-      document.getElementById('voiceOverlay').classList.remove('active', 'connected');
-      document.getElementById('preCallForm').style.display = 'flex';
-      document.getElementById('callUI').style.display = 'none';
-    };
-
-    window.endCall = function() {
-      try { vapi.stop(); } catch(e) {}
-      document.getElementById('voStatus').textContent = 'Call ended';
-      document.getElementById('voiceOverlay').classList.remove('connected');
-      setTimeout(function() {
-        document.getElementById('voiceOverlay').classList.remove('active');
-        document.getElementById('preCallForm').style.display = 'flex';
-        document.getElementById('callUI').style.display = 'none';
-      }, 1500);
     };
   </script>
 </body>
