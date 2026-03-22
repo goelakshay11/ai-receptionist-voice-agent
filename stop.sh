@@ -10,20 +10,12 @@ NC='\033[0m'
 echo -e "${RED}Stopping all services...${NC}"
 echo ""
 
-# 1. Stop website server
-echo "[1/4] Stopping website server (port 4000)..."
-pkill -f "http.server 4000" 2>/dev/null && echo "  Stopped." || echo "  Not running."
-
-# 2. Stop Cloudflare Tunnel
-echo "[2/4] Stopping Cloudflare Tunnel..."
-pkill -f "cloudflared tunnel" 2>/dev/null && echo "  Stopped." || echo "  Not running."
-
-# 3. Stop ngrok
-echo "[3/4] Stopping ngrok..."
+# 1. Stop ngrok
+echo "[1/2] Stopping ngrok..."
 pkill -f ngrok 2>/dev/null && echo "  Stopped." || echo "  Not running."
 
-# 4. Stop n8n Docker
-echo "[4/4] Stopping n8n Docker containers..."
+# 2. Stop n8n Docker
+echo "[2/2] Stopping n8n Docker containers..."
 N8N_DIR="${N8N_DOCKER_DIR:-$HOME/N8N - self host local}"
 if [ -d "$N8N_DIR" ]; then
   cd "$N8N_DIR"
@@ -34,3 +26,6 @@ fi
 
 echo ""
 echo -e "${GREEN}All services stopped.${NC}"
+echo ""
+echo "Website is hosted on GitHub Pages (always available):"
+echo "  https://goelakshay11.github.io/ai-receptionist-voice-agent/"

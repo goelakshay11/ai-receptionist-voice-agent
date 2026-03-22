@@ -50,8 +50,8 @@ Customer (Phone/Web)
 | CRM | Google Sheets | Clients tab, Appointment Log, Call Log |
 | Scheduling | Google Calendar | Salon-side appointment calendar |
 | Email | Gmail (via n8n) | Booking/reschedule/cancellation confirmations |
-| Tunneling (n8n) | ngrok | Exposes local n8n to VAPI webhooks |
-| Tunneling (Website) | Cloudflare Tunnel | Free public URL for the booking website |
+| Tunneling | ngrok | Exposes local n8n to VAPI webhooks |
+| Website Hosting | GitHub Pages | Free static hosting for the booking website |
 | Website | HTML/CSS/JS + VAPI Web SDK | Browser-based voice booking interface |
 
 ---
@@ -121,10 +121,10 @@ naturals-salon-ai-receptionist/
 
 - Docker Desktop (for self-hosted n8n)
 - [ngrok](https://ngrok.com/) — tunnels n8n to the internet (free tier works)
-- [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) — tunnels website to the internet (free, no account needed)
+- Website is hosted on [GitHub Pages](https://goelakshay11.github.io/ai-receptionist-voice-agent/) — no local hosting needed
 - [VAPI](https://vapi.ai/) account — voice AI platform
 - Google Cloud project with Sheets, Calendar, and Gmail OAuth2 APIs enabled
-- Python 3 (for the website's local HTTP server)
+- Python 3 (optional, for local testing only)
 
 ### Quick Start
 
@@ -140,10 +140,11 @@ brew install ngrok cloudflared
 cp .env.example .env
 # Edit .env with your actual credential IDs
 
-# 4. Start all services
+# 4. Start n8n + ngrok
 chmod +x startup.sh stop.sh
 ./startup.sh
-# This starts: n8n (Docker) → ngrok → website (port 4000) → Cloudflare Tunnel
+# This starts: n8n (Docker) → ngrok
+# Website is hosted on GitHub Pages: https://goelakshay11.github.io/ai-receptionist-voice-agent/
 
 # 5. Stop all services
 ./stop.sh
@@ -157,7 +158,7 @@ chmod +x startup.sh stop.sh
 
 3. **Configure website** — Edit `website/index.html` and replace `YOUR_VAPI_PUBLIC_KEY` and `YOUR_VAPI_ASSISTANT_ID` with your actual VAPI credentials
 
-4. **Test** — Open the Cloudflare Tunnel URL in your browser → Click "Book Appointment" → Talk to Sagar
+4. **Test** — Open https://goelakshay11.github.io/ai-receptionist-voice-agent/ → Click "Book Appointment" → Talk to Sagar
 
 ---
 
