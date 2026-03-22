@@ -103,25 +103,8 @@
       color: var(--gold);
     }
 
-    /* ─── Style VAPI floating button ─────────────────────────── */
-    .vapi-btn {
-      z-index: 9998 !important;
-      border-radius: 50% !important;
-      box-shadow: 0 4px 20px rgba(201,168,76,0.4) !important;
-      transition: transform 0.2s ease, box-shadow 0.2s ease !important;
-    }
-    .vapi-btn:hover {
-      transform: scale(1.1) !important;
-      box-shadow: 0 6px 30px rgba(201,168,76,0.6) !important;
-    }
-    .vapi-btn-is-active, .vapi-btn-is-speaking {
-      box-shadow: 0 4px 24px rgba(196,64,64,0.5) !important;
-      animation: vapiActivePulse 1.5s ease-in-out infinite !important;
-    }
-    @keyframes vapiActivePulse {
-      0%,100% { box-shadow: 0 4px 24px rgba(196,64,64,0.5); }
-      50% { box-shadow: 0 4px 36px rgba(196,64,64,0.8); }
-    }
+    /* ─── Hide any VAPI default UI (we use our own) ─────────── */
+    .vapi-btn { display: none !important; }
 
     /* ─── NAV ──────────────────────────────────────────────── */
     nav {
@@ -1239,39 +1222,18 @@
       // so we pass the info and let the default VAPI button start the call
       // The firstMessage override happens via the SDK config
 
-      // Click the VAPI button to start
-      var btn = document.querySelector('.vapi-btn');
-      if (btn) {
-        var isActive = btn.classList.contains('vapi-btn-is-active') ||
-                       btn.classList.contains('vapi-btn-is-speaking') ||
-                       btn.classList.contains('vapi-btn-is-loading');
-        if (!isActive) {
-          setTimeout(function() { btn.click(); }, 300);
-        }
-      } else {
-        document.getElementById('voStatus').textContent = 'Voice assistant loading... Please wait and try again.';
-      }
-
-      // If we have client info, add the greeting to transcript immediately
-      if (customGreeting) {
-        setTimeout(function() {
-          addLine('Sagar', customGreeting);
-        }, 2000);
-      }
+      // VAPI ESM module will override this function — see <script type="module"> below
+      document.getElementById('voStatus').textContent = 'Loading voice SDK...';
     }
 
+    // These will be overridden by the VAPI ESM module
     function closeVoice() {
-      var btn = document.querySelector('.vapi-btn-is-active, .vapi-btn-is-speaking, .vapi-btn-is-loading');
-      if (btn) btn.click();
       document.getElementById('voiceOverlay').classList.remove('active', 'connected');
-      // Reset form
       document.getElementById('preCallForm').style.display = 'flex';
       document.getElementById('callUI').style.display = 'none';
     }
 
     function endCall() {
-      var btn = document.querySelector('.vapi-btn-is-active, .vapi-btn-is-speaking');
-      if (btn) btn.click();
       document.getElementById('voStatus').textContent = 'Call ended';
       document.getElementById('voiceOverlay').classList.remove('connected');
       setTimeout(function() {
@@ -1281,27 +1243,8 @@
       }, 1500);
     }
 
-    // When user clicks the VAPI button directly (without form), show call UI
-    document.addEventListener('click', function(e) {
-      var target = e.target;
-      while (target && target !== document) {
-        if (target.classList && target.classList.contains('vapi-btn')) {
-          var overlay = document.getElementById('voiceOverlay');
-          if (!overlay.classList.contains('active')) {
-            overlay.classList.add('active');
-            document.getElementById('preCallForm').style.display = 'none';
-            document.getElementById('callUI').style.display = 'flex';
-            document.getElementById('voStatus').textContent = 'Connecting to Sagar...';
-            document.getElementById('voTranscript').innerHTML =
-              '<div class="transcript-line sagar"><span class="speaker">SAGAR</span><span class="text">Connecting...</span></div>';
-          }
-          return;
-        }
-        target = target.parentNode;
-      }
-    });
-
-    function addLine(speaker, text) {
+    // Expose addLine to global scope for the ESM module to use
+    window.addLine = function(speaker, text) {
       var wrap = document.getElementById('voTranscript');
       var div = document.createElement('div');
       div.className = 'transcript-line ' + (speaker.toLowerCase() === 'sagar' ? 'sagar' : 'you');
@@ -1310,70 +1253,104 @@
       wrap.scrollTop = wrap.scrollHeight;
     }
 
-    /* ── VAPI SDK ── */
-    var VAPI_KEY = 'YOUR_VAPI_PUBLIC_KEY';  // Replace with your VAPI Public Key
-    var ASST_ID  = 'YOUR_VAPI_ASSISTANT_ID';  // Replace with your VAPI Assistant ID
-    var vapiInstance = null;
+  </script>
 
-    (function(d, t) {
-      var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
-      g.src = 'https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js';
-      g.defer = true; g.async = true;
-      s.parentNode.insertBefore(g, s);
-      g.onload = function() {
-        vapiInstance = window.vapiSDK.run({
-          apiKey: VAPI_KEY,
-          assistant: ASST_ID,
-          config: {
-            position: 'bottom-right',
-            offset: '20px',
-            width: '50px',
-            height: '50px',
-            idle:    { color: 'rgb(201,168,76)', type: 'round', title: '', subtitle: '' },
-            loading: { color: 'rgb(154,122,53)', type: 'round', title: '', subtitle: '' },
-            active:  { color: 'rgb(196,64,64)',  type: 'round', title: '', subtitle: '' }
-          }
-        });
-        if (vapiInstance) {
-          vapiInstance.on('call-start', function() {
-            document.getElementById('voStatus').textContent = 'Talking to Sagar';
-            document.getElementById('voiceOverlay').classList.add('connected');
-            document.getElementById('voTranscript').innerHTML = '';
-          });
-          vapiInstance.on('call-end', function() {
-            document.getElementById('voStatus').textContent = 'Call ended — Thank you!';
-            document.getElementById('voiceOverlay').classList.remove('connected');
-            setTimeout(function() { document.getElementById('voiceOverlay').classList.remove('active'); }, 2500);
-          });
-          vapiInstance.on('error', function(err) {
-            console.error('VAPI error:', err);
-            document.getElementById('voStatus').textContent = 'Connection error. Please try again.';
-          });
-          vapiInstance.on('message', function(msg) {
-            if (msg.type === 'transcript' && msg.transcriptType === 'final') {
-              addLine(msg.role === 'assistant' ? 'Sagar' : 'You', msg.transcript);
-            }
-          });
-        }
+  <!-- VAPI SDK (ESM module for full programmatic control) -->
+  <script type="module">
+    import Vapi from 'https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/+esm';
 
-        // Fallback: watch VAPI button class changes to detect call end
-        // (in case event listeners don't fire reliably)
-        var checkCallState = setInterval(function() {
-          var btn = document.querySelector('.vapi-btn');
-          var overlay = document.getElementById('voiceOverlay');
-          if (!btn || !overlay) return;
-          var isActive = btn.classList.contains('vapi-btn-is-active') ||
-                         btn.classList.contains('vapi-btn-is-speaking') ||
-                         btn.classList.contains('vapi-btn-is-loading');
-          // If overlay shows connected but button is idle, call has ended
-          if (overlay.classList.contains('connected') && !isActive) {
-            document.getElementById('voStatus').textContent = 'Call ended — Thank you!';
-            overlay.classList.remove('connected');
-            setTimeout(function() { overlay.classList.remove('active'); }, 2500);
-          }
-        }, 1000);
-      };
-    })(document, 'script');
+    var VAPI_KEY = 'YOUR_VAPI_PUBLIC_KEY';
+    var ASST_ID  = 'YOUR_VAPI_ASSISTANT_ID';
+
+    var vapi = new Vapi(VAPI_KEY);
+
+    // Expose to global scope so non-module scripts can use it
+    window.vapiClient = vapi;
+
+    // Event listeners
+    vapi.on('call-start', function() {
+      document.getElementById('voStatus').textContent = 'Talking to Sagar';
+      document.getElementById('voiceOverlay').classList.add('connected');
+      document.getElementById('voTranscript').innerHTML = '';
+    });
+
+    vapi.on('call-end', function() {
+      document.getElementById('voStatus').textContent = 'Call ended — Thank you!';
+      document.getElementById('voiceOverlay').classList.remove('connected');
+      setTimeout(function() {
+        document.getElementById('voiceOverlay').classList.remove('active');
+        document.getElementById('preCallForm').style.display = 'flex';
+        document.getElementById('callUI').style.display = 'none';
+      }, 2500);
+    });
+
+    vapi.on('error', function(err) {
+      console.error('VAPI error:', err);
+      var errStr = String(err).toLowerCase();
+      var msg = 'Connection error. Please try again.';
+      if (errStr.indexOf('microphone') > -1 || errStr.indexOf('permission') > -1 || errStr.indexOf('audio') > -1) {
+        msg = 'Please allow microphone access in your browser and try again.';
+      }
+      document.getElementById('voStatus').textContent = msg;
+    });
+
+    vapi.on('message', function(msg) {
+      if (msg.type === 'transcript' && msg.transcriptType === 'final') {
+        window.addLine(msg.role === 'assistant' ? 'Sagar' : 'You', msg.transcript);
+      }
+    });
+
+    // Override the startCallWithGreeting function with proper VAPI integration
+    window.startCallWithGreeting = function(customGreeting) {
+      document.getElementById('preCallForm').style.display = 'none';
+      document.getElementById('callUI').style.display = 'flex';
+      document.getElementById('voStatus').textContent = 'Connecting to Sagar...';
+      document.getElementById('voTranscript').innerHTML =
+        '<div class="transcript-line sagar"><span class="speaker">SAGAR</span><span class="text">Connecting...</span></div>';
+      document.getElementById('formSubmitBtn').disabled = false;
+      document.getElementById('formSubmitBtn').textContent = 'Start Voice Call';
+
+      var overrides = {};
+      var info = window.clientInfo;
+
+      if (customGreeting) {
+        overrides.firstMessage = customGreeting;
+      }
+
+      if (info) {
+        overrides.variableValues = {
+          clientName: info.name || '',
+          clientPhone: info.phone || '',
+          clientEmail: info.email || '',
+          clientStatus: info.isNew ? 'new' : 'returning'
+        };
+      }
+
+      // Start call with overrides
+      vapi.start(ASST_ID, overrides).catch(function(err) {
+        console.error('Call start error:', err);
+        document.getElementById('voStatus').textContent = 'Could not start call. Please check microphone permissions.';
+      });
+    };
+
+    // Override closeVoice and endCall with direct vapi.stop()
+    window.closeVoice = function() {
+      try { vapi.stop(); } catch(e) {}
+      document.getElementById('voiceOverlay').classList.remove('active', 'connected');
+      document.getElementById('preCallForm').style.display = 'flex';
+      document.getElementById('callUI').style.display = 'none';
+    };
+
+    window.endCall = function() {
+      try { vapi.stop(); } catch(e) {}
+      document.getElementById('voStatus').textContent = 'Call ended';
+      document.getElementById('voiceOverlay').classList.remove('connected');
+      setTimeout(function() {
+        document.getElementById('voiceOverlay').classList.remove('active');
+        document.getElementById('preCallForm').style.display = 'flex';
+        document.getElementById('callUI').style.display = 'none';
+      }, 1500);
+    };
   </script>
 </body>
 </html>
