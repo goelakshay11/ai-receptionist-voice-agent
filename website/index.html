@@ -1234,16 +1234,23 @@
       // so we pass the info and let the default VAPI button start the call
       // The firstMessage override happens via the SDK config
 
-      // Wait for ESM module to be ready, then call it
-      function waitAndStart() {
-        if (window._vapiReady) {
-          window._vapiStartCall(customGreeting);
-        } else {
-          document.getElementById('voStatus').textContent = 'Loading voice SDK...';
-          setTimeout(waitAndStart, 500);
-        }
+      if (window._vapiReady && window._vapiStartCall) {
+        window._vapiStartCall(customGreeting);
+      } else {
+        document.getElementById('voStatus').textContent = 'Voice SDK loading... please wait a moment.';
+        // Retry until SDK is ready
+        var retryCount = 0;
+        var retry = setInterval(function() {
+          retryCount++;
+          if (window._vapiReady && window._vapiStartCall) {
+            clearInterval(retry);
+            window._vapiStartCall(customGreeting);
+          } else if (retryCount > 20) {
+            clearInterval(retry);
+            document.getElementById('voStatus').textContent = 'Could not load voice SDK. Please refresh and try again.';
+          }
+        }, 500);
       }
-      waitAndStart();
     }
 
     function closeVoice() {
@@ -1274,57 +1281,79 @@
       wrap.scrollTop = wrap.scrollHeight;
     }
 
-  </script>
-
-  <!-- VAPI SDK (ESM module for full programmatic control) -->
-  <script type="module">
-    import Vapi from 'https://cdn.jsdelivr.net/npm/@vapi-ai/web@latest/+esm';
-
+    /* ── VAPI SDK (HTML script tag — proven to work) ── */
     var VAPI_KEY = '5f73b5e0-a495-4e3d-bae6-7fb4dbcb505b';
     var ASST_ID  = '55c85095-48a8-4741-96f2-34e4968934eb';
+    var vapiInstance = null;
 
-    var vapi = new Vapi(VAPI_KEY);
+    function initVapi(overrides) {
+      // Remove old VAPI button if re-initializing
+      var oldBtn = document.querySelector('.vapi-btn');
+      if (oldBtn) oldBtn.remove();
 
-    // Expose to global scope so non-module scripts can use it
-    window.vapiClient = vapi;
+      var runConfig = {
+        apiKey: VAPI_KEY,
+        assistant: ASST_ID,
+        config: {
+          position: 'bottom-right',
+          offset: '20px',
+          width: '50px',
+          height: '50px',
+          idle:    { color: 'rgb(201,168,76)', type: 'round', title: '', subtitle: '' },
+          loading: { color: 'rgb(154,122,53)', type: 'round', title: '', subtitle: '' },
+          active:  { color: 'rgb(196,64,64)',  type: 'round', title: '', subtitle: '' }
+        }
+      };
 
-    // Event listeners
-    vapi.on('call-start', function() {
-      document.getElementById('voStatus').textContent = 'Talking to Sagar';
-      document.getElementById('voiceOverlay').classList.add('connected');
-      document.getElementById('voTranscript').innerHTML = '';
-    });
-
-    vapi.on('call-end', function() {
-      document.getElementById('voStatus').textContent = 'Call ended — Thank you!';
-      document.getElementById('voiceOverlay').classList.remove('connected');
-      setTimeout(function() {
-        document.getElementById('voiceOverlay').classList.remove('active');
-        document.getElementById('preCallForm').style.display = 'flex';
-        document.getElementById('callUI').className = '';
-      }, 2500);
-    });
-
-    vapi.on('error', function(err) {
-      console.error('VAPI error:', err);
-      var errStr = String(err).toLowerCase();
-      var msg = 'Connection error. Please try again.';
-      if (errStr.indexOf('microphone') > -1 || errStr.indexOf('permission') > -1 || errStr.indexOf('audio') > -1) {
-        msg = 'Please allow microphone access in your browser and try again.';
+      // Add overrides if provided (firstMessage, variableValues)
+      if (overrides) {
+        runConfig.assistantOverrides = overrides;
       }
-      document.getElementById('voStatus').textContent = msg;
-    });
 
-    vapi.on('message', function(msg) {
-      if (msg.type === 'transcript' && msg.transcriptType === 'final') {
-        window.addLine(msg.role === 'assistant' ? 'Sagar' : 'You', msg.transcript);
+      vapiInstance = window.vapiSDK.run(runConfig);
+      window.vapiClient = vapiInstance;
+      window._vapiReady = true;
+
+      if (vapiInstance) {
+        vapiInstance.on('call-start', function() {
+          document.getElementById('voStatus').textContent = 'Talking to Sagar';
+          document.getElementById('voiceOverlay').classList.add('connected');
+          document.getElementById('voTranscript').innerHTML = '';
+        });
+        vapiInstance.on('call-end', function() {
+          document.getElementById('voStatus').textContent = 'Call ended — Thank you!';
+          document.getElementById('voiceOverlay').classList.remove('connected');
+          setTimeout(function() {
+            document.getElementById('voiceOverlay').classList.remove('active');
+            document.getElementById('preCallForm').style.display = 'flex';
+            document.getElementById('callUI').className = '';
+          }, 2500);
+        });
+        vapiInstance.on('error', function(err) {
+          console.error('VAPI error:', err);
+          document.getElementById('voStatus').textContent = 'Connection error. Please try again.';
+        });
+        vapiInstance.on('message', function(msg) {
+          if (msg.type === 'transcript' && msg.transcriptType === 'final') {
+            window.addLine(msg.role === 'assistant' ? 'Sagar' : 'You', msg.transcript);
+          }
+        });
       }
-    });
+    }
 
-    // Mark SDK as ready and provide the start function
-    window._vapiReady = true;
-    window.vapiClient = vapi;
+    // Load the VAPI SDK script
+    (function(d, t) {
+      var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
+      g.src = 'https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js';
+      g.defer = true; g.async = true;
+      s.parentNode.insertBefore(g, s);
+      g.onload = function() {
+        // Initialize without overrides (default)
+        initVapi(null);
+      };
+    })(document, 'script');
 
+    // Called by the form submit or skip — starts the actual call
     window._vapiStartCall = function(customGreeting) {
       document.getElementById('preCallForm').style.display = 'none';
       document.getElementById('callUI').className = 'visible';
@@ -1334,26 +1363,36 @@
       document.getElementById('formSubmitBtn').disabled = false;
       document.getElementById('formSubmitBtn').textContent = 'Start Voice Call';
 
-      var overrides = {};
+      // Build overrides from client info
+      var overrides = null;
       var info = window.clientInfo;
-
-      if (customGreeting) {
-        overrides.firstMessage = customGreeting;
+      if (customGreeting || info) {
+        overrides = {};
+        if (customGreeting) overrides.firstMessage = customGreeting;
+        if (info) {
+          overrides.variableValues = {
+            clientName: info.name || '',
+            clientPhone: info.phone || '',
+            clientEmail: info.email || '',
+            clientStatus: info.isNew ? 'new' : 'returning'
+          };
+        }
       }
 
-      if (info) {
-        overrides.variableValues = {
-          clientName: info.name || '',
-          clientPhone: info.phone || '',
-          clientEmail: info.email || '',
-          clientStatus: info.isNew ? 'new' : 'returning'
-        };
+      // Re-initialize VAPI with overrides if needed, then click the button
+      if (overrides && window.vapiSDK) {
+        initVapi(overrides);
       }
 
-      vapi.start(ASST_ID, overrides).catch(function(err) {
-        console.error('Call start error:', err);
-        document.getElementById('voStatus').textContent = 'Could not start call. Please allow microphone access.';
-      });
+      // Click the VAPI button to start
+      setTimeout(function() {
+        var btn = document.querySelector('.vapi-btn');
+        if (btn) {
+          btn.click();
+        } else {
+          document.getElementById('voStatus').textContent = 'Voice SDK loading... please wait and try again.';
+        }
+      }, 500);
     };
   </script>
 </body>
