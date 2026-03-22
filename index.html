@@ -46,6 +46,63 @@
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
 
+    /* ─── Pre-call form ─────────────────────────────────────── */
+    #preCallForm {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 90%;
+      max-width: 420px;
+    }
+    .form-fields {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .form-group {
+      width: 100%;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.4rem;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 4px;
+      color: var(--cream);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 400;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .form-group input:focus {
+      border-color: var(--gold);
+      background: rgba(201,168,76,0.04);
+    }
+    .form-group input::placeholder {
+      color: rgba(255,255,255,0.2);
+    }
+    .form-skip {
+      margin-top: 1.2rem;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.35);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .form-skip:hover {
+      color: var(--gold);
+    }
+
     /* ─── Style VAPI floating button ─────────────────────────── */
     .vapi-btn {
       z-index: 9998 !important;
@@ -959,20 +1016,48 @@
   <!-- VOICE OVERLAY -->
   <div id="voiceOverlay">
     <button class="vo-close" onclick="closeVoice()">&#10005;</button>
-    <div class="vo-title">Naturals Salon Receptionist</div>
-    <p id="voStatus">Connecting to Sagar...</p>
-    <div class="vo-orb-wrap">
-      <div class="vo-ring"></div>
-      <div class="vo-orb">&#127897;&#65039;</div>
-    </div>
-    <div id="voTranscript">
-      <div class="transcript-line sagar">
-        <span class="speaker">Sagar</span>
-        <span class="text">Hi there! Just a moment while I connect…</span>
+
+    <!-- PRE-CALL FORM (visible before call starts) -->
+    <div id="preCallForm">
+      <div class="vo-title">Before we connect you with Sagar</div>
+      <p id="formStatus" style="font-size:0.85rem;color:var(--gold);margin-bottom:1.5rem;min-height:1.2em;"></p>
+      <div class="form-fields">
+        <div class="form-group">
+          <label for="formName">Your Name</label>
+          <input type="text" id="formName" placeholder="e.g. Akshay" autocomplete="name" />
+        </div>
+        <div class="form-group">
+          <label for="formPhone">Mobile Number (10 digits)</label>
+          <input type="tel" id="formPhone" placeholder="e.g. 9876543210" maxlength="10" autocomplete="tel" />
+        </div>
+        <div class="form-group">
+          <label for="formEmail">Email Address</label>
+          <input type="email" id="formEmail" placeholder="e.g. you@gmail.com" autocomplete="email" />
+        </div>
       </div>
+      <button class="btn-primary" id="formSubmitBtn" onclick="handleFormSubmit()" style="margin-top:1.5rem;width:100%;justify-content:center;">
+        Start Voice Call
+      </button>
+      <p class="form-skip" onclick="skipForm()">Or skip and talk to Sagar directly &rarr;</p>
     </div>
-    <p class="vo-hint">Speak naturally — tell Sagar the service you'd like and your preferred time.</p>
-    <button id="voEndBtn" onclick="endCall()">End Call</button>
+
+    <!-- CALL UI (hidden until call starts) -->
+    <div id="callUI" style="display:none;">
+      <div class="vo-title">Naturals Salon Receptionist</div>
+      <p id="voStatus">Connecting to Sagar...</p>
+      <div class="vo-orb-wrap">
+        <div class="vo-ring"></div>
+        <div class="vo-orb">&#127897;&#65039;</div>
+      </div>
+      <div id="voTranscript">
+        <div class="transcript-line sagar">
+          <span class="speaker">Sagar</span>
+          <span class="text">Connecting...</span>
+        </div>
+      </div>
+      <p class="vo-hint">Speak naturally — tell Sagar the service you'd like and your preferred time.</p>
+      <button id="voEndBtn" onclick="endCall()">End Call</button>
+    </div>
   </div>
 
   <script>
@@ -1065,13 +1150,96 @@
     revealEls.forEach(function(el) { observer.observe(el); });
 
     /* ── Voice Overlay ── */
+    var N8N_URL = 'https://carmel-confirmatory-dominatingly.ngrok-free.dev';  // Update when ngrok restarts
+    var clientInfo = null;  // Stores {name, phone, email, isNew}
+
     function openVoice() {
       document.getElementById('voiceOverlay').classList.add('active');
+      // Show the pre-call form, hide the call UI
+      document.getElementById('preCallForm').style.display = 'flex';
+      document.getElementById('callUI').style.display = 'none';
+      document.getElementById('formStatus').textContent = '';
+      document.getElementById('voiceOverlay').classList.remove('connected');
+    }
+
+    // Handle form submission — lookup client, then start call
+    async function handleFormSubmit() {
+      var name = document.getElementById('formName').value.trim();
+      var phone = document.getElementById('formPhone').value.trim();
+      var email = document.getElementById('formEmail').value.trim();
+      var statusEl = document.getElementById('formStatus');
+      var submitBtn = document.getElementById('formSubmitBtn');
+
+      // Validate
+      if (!name) { statusEl.textContent = 'Please enter your name.'; return; }
+      if (!phone || phone.length !== 10 || !/^\d{10}$/.test(phone)) { statusEl.textContent = 'Please enter a valid 10-digit mobile number.'; return; }
+      if (!email || !email.includes('@')) { statusEl.textContent = 'Please enter a valid email address.'; return; }
+
+      statusEl.textContent = 'Checking your details...';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Please wait...';
+
+      var isNew = false;
+      var greeting = '';
+
+      try {
+        // 1. Lookup client by phone
+        var lookupRes = await fetch(N8N_URL + '/webhook/sagar-client-lookup', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({phone: phone})
+        });
+        var lookupData = await lookupRes.json();
+        var result = (lookupData.results && lookupData.results[0] && lookupData.results[0].result) || '';
+
+        if (result.toLowerCase().indexOf('new client') > -1 || result.toLowerCase().indexOf('not found') > -1) {
+          // New client — register them
+          statusEl.textContent = 'Setting up your profile...';
+          isNew = true;
+          await fetch(N8N_URL + '/webhook/OgZgHAVPrYetDIop/webhook/sagar-new-client', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({phone: phone, name: name, email: email})
+          });
+          greeting = 'Welcome, ' + name + '! I have added you to our system. How can I help you today?';
+        } else {
+          // Existing client
+          greeting = 'Welcome back, ' + name + '! How can I help you today?';
+        }
+
+        clientInfo = {name: name, phone: phone, email: email, isNew: isNew};
+      } catch (err) {
+        console.error('n8n lookup error:', err);
+        // Fallback — start call anyway, let Sagar handle it
+        greeting = 'Hi ' + name + '! How can I help you today?';
+        clientInfo = {name: name, phone: phone, email: email, isNew: false};
+      }
+
+      // Switch to call UI
+      startCallWithGreeting(greeting);
+    }
+
+    // Skip form — start call without pre-lookup
+    function skipForm() {
+      clientInfo = null;
+      startCallWithGreeting(null);
+    }
+
+    function startCallWithGreeting(customGreeting) {
+      document.getElementById('preCallForm').style.display = 'none';
+      document.getElementById('callUI').style.display = 'flex';
       document.getElementById('voStatus').textContent = 'Connecting to Sagar...';
       document.getElementById('voTranscript').innerHTML =
         '<div class="transcript-line sagar"><span class="speaker">SAGAR</span><span class="text">Connecting...</span></div>';
+      document.getElementById('formSubmitBtn').disabled = false;
+      document.getElementById('formSubmitBtn').textContent = 'Start Voice Call';
 
-      // Find and click the VAPI floating button to start call
+      // If we have a custom greeting, we need to re-init VAPI with assistantOverrides
+      // The HTML script tag SDK doesn't easily support per-call overrides,
+      // so we pass the info and let the default VAPI button start the call
+      // The firstMessage override happens via the SDK config
+
+      // Click the VAPI button to start
       var btn = document.querySelector('.vapi-btn');
       if (btn) {
         var isActive = btn.classList.contains('vapi-btn-is-active') ||
@@ -1081,8 +1249,14 @@
           setTimeout(function() { btn.click(); }, 300);
         }
       } else {
-        document.getElementById('voStatus').textContent =
-          'Voice assistant loading... Click the gold button at bottom-right when it appears.';
+        document.getElementById('voStatus').textContent = 'Voice assistant loading... Please wait and try again.';
+      }
+
+      // If we have client info, add the greeting to transcript immediately
+      if (customGreeting) {
+        setTimeout(function() {
+          addLine('Sagar', customGreeting);
+        }, 2000);
       }
     }
 
@@ -1090,6 +1264,9 @@
       var btn = document.querySelector('.vapi-btn-is-active, .vapi-btn-is-speaking, .vapi-btn-is-loading');
       if (btn) btn.click();
       document.getElementById('voiceOverlay').classList.remove('active', 'connected');
+      // Reset form
+      document.getElementById('preCallForm').style.display = 'flex';
+      document.getElementById('callUI').style.display = 'none';
     }
 
     function endCall() {
@@ -1099,10 +1276,12 @@
       document.getElementById('voiceOverlay').classList.remove('connected');
       setTimeout(function() {
         document.getElementById('voiceOverlay').classList.remove('active');
+        document.getElementById('preCallForm').style.display = 'flex';
+        document.getElementById('callUI').style.display = 'none';
       }, 1500);
     }
 
-    // When user clicks the VAPI button directly, also show our overlay
+    // When user clicks the VAPI button directly (without form), show call UI
     document.addEventListener('click', function(e) {
       var target = e.target;
       while (target && target !== document) {
@@ -1110,6 +1289,8 @@
           var overlay = document.getElementById('voiceOverlay');
           if (!overlay.classList.contains('active')) {
             overlay.classList.add('active');
+            document.getElementById('preCallForm').style.display = 'none';
+            document.getElementById('callUI').style.display = 'flex';
             document.getElementById('voStatus').textContent = 'Connecting to Sagar...';
             document.getElementById('voTranscript').innerHTML =
               '<div class="transcript-line sagar"><span class="speaker">SAGAR</span><span class="text">Connecting...</span></div>';
@@ -1130,8 +1311,8 @@
     }
 
     /* ── VAPI SDK ── */
-    var VAPI_KEY = '5f73b5e0-a495-4e3d-bae6-7fb4dbcb505b';
-    var ASST_ID  = '55c85095-48a8-4741-96f2-34e4968934eb';
+    var VAPI_KEY = '5f73b5e0-a495-4e3d-bae6-7fb4dbcb505b';  // Replace with your VAPI Public Key
+    var ASST_ID  = '55c85095-48a8-4741-96f2-34e4968934eb';  // Replace with your VAPI Assistant ID
     var vapiInstance = null;
 
     (function(d, t) {
@@ -1166,12 +1347,7 @@
           });
           vapiInstance.on('error', function(err) {
             console.error('VAPI error:', err);
-            var errStr = String(err).toLowerCase();
-            var msg = 'Connection error. Please try again.';
-            if (errStr.indexOf('microphone') > -1 || errStr.indexOf('permission') > -1 || errStr.indexOf('audio') > -1) {
-              msg = 'Please allow microphone access in your browser and try again.';
-            }
-            document.getElementById('voStatus').textContent = msg;
+            document.getElementById('voStatus').textContent = 'Connection error. Please try again.';
           });
           vapiInstance.on('message', function(msg) {
             if (msg.type === 'transcript' && msg.transcriptType === 'final') {
