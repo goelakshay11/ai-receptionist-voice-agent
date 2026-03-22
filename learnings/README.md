@@ -300,6 +300,31 @@ The public key is safe to expose in frontend JS (it only allows starting calls, 
 
 ---
 
+## Phase 8: Pre-Call Client Form (Website → n8n → VAPI)
+
+### Problem
+Collecting user details (name, phone, email) over voice was the slowest, most error-prone part of every call. Speech-to-text regularly misheard phone numbers ("double 7" confusion) and garbled email addresses. Each call spent 30-60 seconds just on identification before any useful work happened.
+
+### Solution
+Added a pre-call form on the website that collects name, phone, and email BEFORE the voice call starts:
+
+1. User fills out the form on the website
+2. Website calls n8n's `clientLookup` webhook directly (same endpoint VAPI uses)
+3. If new client → website calls `newClientCRM` to register them
+4. Website passes client info to VAPI via `assistantOverrides` with `firstMessage` and `variableValues`
+5. Sagar greets by name ("Welcome back, Akshay!") and skips identification entirely
+
+### Technical Details
+- The n8n Code nodes have a fallback: `body?.message?.toolCalls?.[0]?.function?.['arguments'] ?? body ?? {}`. This means a simple `{phone: "9876543210"}` POST body works the same as VAPI's nested format.
+- CORS is handled by n8n automatically (returns proper `Access-Control-Allow-Origin` headers)
+- The VAPI HTML script tag SDK's `run()` function accepts `assistantOverrides` parameter for per-session customization
+- A "Skip" option lets users bypass the form and talk to Sagar directly (falls back to voice-based identification)
+
+### Lesson
+**Collect structured data via text input wherever possible.** Voice is great for conversation but terrible for data entry. A 3-field form saved 30-60 seconds per call and eliminated the #1 source of errors (misheard phone numbers and emails).
+
+---
+
 ## Key Architectural Decisions
 
 ### Phone as Primary Identifier
