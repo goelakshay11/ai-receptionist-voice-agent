@@ -46,14 +46,24 @@
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
 
-    /* ─── VAPI button: invisible but clickable ──────────────── */
-    .vapi-btn{
-      width:1px!important;height:1px!important;
-      opacity:0!important;
-      position:fixed!important;bottom:0!important;right:0!important;
-      overflow:hidden!important;
-      /* pointer-events must stay enabled so .click() works */
-      pointer-events:auto!important;
+    /* ─── Style VAPI floating button ─────────────────────────── */
+    .vapi-btn {
+      z-index: 9998 !important;
+      border-radius: 50% !important;
+      box-shadow: 0 4px 20px rgba(201,168,76,0.4) !important;
+      transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    }
+    .vapi-btn:hover {
+      transform: scale(1.1) !important;
+      box-shadow: 0 6px 30px rgba(201,168,76,0.6) !important;
+    }
+    .vapi-btn-is-active, .vapi-btn-is-speaking {
+      box-shadow: 0 4px 24px rgba(196,64,64,0.5) !important;
+      animation: vapiActivePulse 1.5s ease-in-out infinite !important;
+    }
+    @keyframes vapiActivePulse {
+      0%,100% { box-shadow: 0 4px 24px rgba(196,64,64,0.5); }
+      50% { box-shadow: 0 4px 36px rgba(196,64,64,0.8); }
     }
 
     /* ─── NAV ──────────────────────────────────────────────── */
@@ -988,8 +998,8 @@
           y: Math.random() * H,
           vx: (Math.random() - 0.5) * 0.35,
           vy: (Math.random() - 0.5) * 0.35,
-          r: Math.random() * 1.5 + 0.5,
-          a: Math.random() * 0.5 + 0.15
+          r: Math.random() * 2.2 + 0.8,
+          a: Math.random() * 0.6 + 0.25
         });
       }
 
@@ -1008,10 +1018,10 @@
             var dy = particles[i].y - particles[j].y;
             var dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < CONNECT_DIST) {
-              var opacity = (1 - dist / CONNECT_DIST) * 0.18;
+              var opacity = (1 - dist / CONNECT_DIST) * 0.3;
               ctx.beginPath();
               ctx.strokeStyle = 'rgba(201,168,76,' + opacity + ')';
-              ctx.lineWidth = 0.6;
+              ctx.lineWidth = 0.8;
               ctx.moveTo(particles[i].x, particles[i].y);
               ctx.lineTo(particles[j].x, particles[j].y);
               ctx.stroke();
@@ -1020,10 +1030,15 @@
         }
         for (var i = 0; i < particles.length; i++) {
           var p = particles[i];
+          // Glow effect
+          ctx.save();
+          ctx.shadowColor = 'rgba(201,168,76,0.6)';
+          ctx.shadowBlur = p.r * 4;
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
           ctx.fillStyle = 'rgba(201,168,76,' + p.a + ')';
           ctx.fill();
+          ctx.restore();
         }
         requestAnimationFrame(draw);
       }
@@ -1056,29 +1071,28 @@
       document.getElementById('voTranscript').innerHTML =
         '<div class="transcript-line sagar"><span class="speaker">SAGAR</span><span class="text">Connecting...</span></div>';
 
-      // Click the hidden VAPI button to start the call
+      // Find and click the VAPI floating button to start call
       var btn = document.querySelector('.vapi-btn');
       if (btn) {
-        // Only click if not already in a call
-        if (!btn.classList.contains('vapi-btn-is-active') &&
-            !btn.classList.contains('vapi-btn-is-speaking') &&
-            !btn.classList.contains('vapi-btn-is-loading')) {
-          btn.click();
+        var isActive = btn.classList.contains('vapi-btn-is-active') ||
+                       btn.classList.contains('vapi-btn-is-speaking') ||
+                       btn.classList.contains('vapi-btn-is-loading');
+        if (!isActive) {
+          setTimeout(function() { btn.click(); }, 300);
         }
       } else {
-        document.getElementById('voStatus').textContent = 'Voice SDK still loading... Please wait and try again.';
+        document.getElementById('voStatus').textContent =
+          'Voice assistant loading... Click the gold button at bottom-right when it appears.';
       }
     }
 
     function closeVoice() {
-      // Click the VAPI button to end the call if active
       var btn = document.querySelector('.vapi-btn-is-active, .vapi-btn-is-speaking, .vapi-btn-is-loading');
       if (btn) btn.click();
       document.getElementById('voiceOverlay').classList.remove('active', 'connected');
     }
 
     function endCall() {
-      // Click the VAPI button to end the call
       var btn = document.querySelector('.vapi-btn-is-active, .vapi-btn-is-speaking');
       if (btn) btn.click();
       document.getElementById('voStatus').textContent = 'Call ended';
@@ -1087,6 +1101,24 @@
         document.getElementById('voiceOverlay').classList.remove('active');
       }, 1500);
     }
+
+    // When user clicks the VAPI button directly, also show our overlay
+    document.addEventListener('click', function(e) {
+      var target = e.target;
+      while (target && target !== document) {
+        if (target.classList && target.classList.contains('vapi-btn')) {
+          var overlay = document.getElementById('voiceOverlay');
+          if (!overlay.classList.contains('active')) {
+            overlay.classList.add('active');
+            document.getElementById('voStatus').textContent = 'Connecting to Sagar...';
+            document.getElementById('voTranscript').innerHTML =
+              '<div class="transcript-line sagar"><span class="speaker">SAGAR</span><span class="text">Connecting...</span></div>';
+          }
+          return;
+        }
+        target = target.parentNode;
+      }
+    });
 
     function addLine(speaker, text) {
       var wrap = document.getElementById('voTranscript');
@@ -1130,7 +1162,7 @@
           vapiInstance.on('call-end', function() {
             document.getElementById('voStatus').textContent = 'Call ended — Thank you!';
             document.getElementById('voiceOverlay').classList.remove('connected');
-            setTimeout(function() { document.getElementById('voiceOverlay').classList.remove('active'); }, 2000);
+            setTimeout(function() { document.getElementById('voiceOverlay').classList.remove('active'); }, 2500);
           });
           vapiInstance.on('error', function(err) {
             console.error('VAPI error:', err);
@@ -1142,6 +1174,23 @@
             }
           });
         }
+
+        // Fallback: watch VAPI button class changes to detect call end
+        // (in case event listeners don't fire reliably)
+        var checkCallState = setInterval(function() {
+          var btn = document.querySelector('.vapi-btn');
+          var overlay = document.getElementById('voiceOverlay');
+          if (!btn || !overlay) return;
+          var isActive = btn.classList.contains('vapi-btn-is-active') ||
+                         btn.classList.contains('vapi-btn-is-speaking') ||
+                         btn.classList.contains('vapi-btn-is-loading');
+          // If overlay shows connected but button is idle, call has ended
+          if (overlay.classList.contains('connected') && !isActive) {
+            document.getElementById('voStatus').textContent = 'Call ended — Thank you!';
+            overlay.classList.remove('connected');
+            setTimeout(function() { overlay.classList.remove('active'); }, 2500);
+          }
+        }, 1000);
       };
     })(document, 'script');
   </script>
