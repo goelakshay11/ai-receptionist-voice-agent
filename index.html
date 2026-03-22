@@ -1166,7 +1166,12 @@
           });
           vapiInstance.on('error', function(err) {
             console.error('VAPI error:', err);
-            document.getElementById('voStatus').textContent = 'Connection error. Please try again.';
+            var errStr = String(err).toLowerCase();
+            var msg = 'Connection error. Please try again.';
+            if (errStr.indexOf('microphone') > -1 || errStr.indexOf('permission') > -1 || errStr.indexOf('audio') > -1) {
+              msg = 'Please allow microphone access in your browser and try again.';
+            }
+            document.getElementById('voStatus').textContent = msg;
           });
           vapiInstance.on('message', function(msg) {
             if (msg.type === 'transcript' && msg.transcriptType === 'final') {
