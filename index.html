@@ -1,20 +1,1399 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Naturals Salon — Offline</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#060608;color:#f2efe8;font-family:'Segoe UI',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:2rem}
-h1{font-size:2rem;margin-bottom:1rem;color:#c9a84c}
-p{color:#9a978f;font-size:1rem;line-height:1.6;max-width:400px}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Naturals Salon Sarjapura — Premium Men's Grooming</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Reset & Base ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #c9a84c;
+      --gold-bright: #e8c46a;
+      --gold-dim: #9a7a35;
+      --amber: #d4a648;
+      --cream: #f2efe8;
+      --bg: #060608;
+      --bg2: #0c0c10;
+      --bg3: #111118;
+      --text: #e8e4dc;
+      --text-muted: #8a8575;
+      --card-bg: rgba(255,255,255,0.025);
+      --card-border: rgba(255,255,255,0.06);
+      --gold-glow: rgba(201,168,76,0.25);
+      --gold-glow-soft: rgba(201,168,76,0.12);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-weight: 400;
+      line-height: 1.6;
+      overflow-x: hidden;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    ::selection { background: var(--gold-glow); color: var(--cream); }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 3px; }
+
+    /* ─── Pre-call form ─────────────────────────────────────── */
+    #preCallForm {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 90%;
+      max-width: 420px;
+    }
+    .form-fields {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .form-group {
+      width: 100%;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.4rem;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 4px;
+      color: var(--cream);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 400;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .form-group input:focus {
+      border-color: var(--gold);
+      background: rgba(201,168,76,0.04);
+    }
+    .form-group input::placeholder {
+      color: rgba(255,255,255,0.2);
+    }
+    .form-skip {
+      margin-top: 1.2rem;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.35);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .form-skip:hover {
+      color: var(--gold);
+    }
+
+    /* ─── Hide any VAPI default UI (we use our own) ─────────── */
+    .vapi-btn { display: none !important; }
+
+    /* ─── NAV ──────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 48px;
+      background: rgba(6,6,8,0.6);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(201,168,76,0.08);
+    }
+    .nav-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--cream);
+      letter-spacing: 0.02em;
+    }
+    .nav-brand span { color: var(--gold); }
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition: color 0.25s;
+    }
+    .nav-links a:hover { color: var(--gold); }
+    .nav-cta {
+      background: var(--gold);
+      color: #000;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 4px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: background 0.25s, box-shadow 0.25s;
+    }
+    .nav-cta:hover {
+      background: var(--gold-bright);
+      box-shadow: 0 0 24px var(--gold-glow);
+    }
+
+    /* ─── HERO ─────────────────────────────────────────────── */
+    #hero {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      min-height: 640px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    #hero-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+    .hero-bloom {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(ellipse at center, rgba(201,168,76,0.14) 0%, rgba(201,168,76,0.04) 40%, transparent 70%);
+      z-index: 1;
+      pointer-events: none;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 0 24px;
+      max-width: 780px;
+    }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(201,168,76,0.08);
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: 100px;
+      padding: 7px 18px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 32px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 0.7s 0.2s forwards;
+    }
+    .pulse-dot {
+      width: 8px; height: 8px;
+      background: var(--gold);
+      border-radius: 50%;
+      flex-shrink: 0;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.7); }
+      50% { box-shadow: 0 0 0 6px rgba(201,168,76,0); }
+    }
+    .hero-h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3rem, 8vw, 5.5rem);
+      line-height: 1.05;
+      font-weight: 700;
+      color: var(--cream);
+      margin-bottom: 8px;
+    }
+    .hero-h1 .line1 {
+      display: block;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeUp 0.7s 0.4s forwards;
+    }
+    .hero-h1 .line2 {
+      display: block;
+      font-style: italic;
+      color: var(--gold);
+      text-shadow: 0 0 40px rgba(201,168,76,0.4);
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeUp 0.7s 0.6s forwards;
+    }
+    .hero-sub {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 460px;
+      margin: 24px auto 40px;
+      font-weight: 300;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 0.7s 0.8s forwards;
+    }
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 0.7s 1s forwards;
+    }
+    .btn-primary {
+      background: var(--gold);
+      color: #000;
+      border: none;
+      padding: 15px 36px;
+      border-radius: 4px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: background 0.25s, box-shadow 0.25s, transform 0.2s;
+    }
+    .btn-primary:hover {
+      background: var(--gold-bright);
+      box-shadow: 0 0 32px var(--gold-glow);
+      transform: translateY(-2px);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--gold);
+      border: 1.5px solid rgba(201,168,76,0.5);
+      padding: 15px 36px;
+      border-radius: 4px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      display: inline-block;
+      transition: border-color 0.25s, box-shadow 0.25s, color 0.25s, transform 0.2s;
+    }
+    .btn-ghost:hover {
+      border-color: var(--gold);
+      box-shadow: 0 0 20px rgba(201,168,76,0.15);
+      color: var(--gold-bright);
+      transform: translateY(-2px);
+    }
+    .scroll-indicator {
+      position: absolute;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      animation: fadeUp 0.7s 1.4s forwards;
+    }
+    .scroll-indicator span {
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .scroll-line {
+      width: 1px;
+      height: 48px;
+      background: linear-gradient(to bottom, var(--gold), transparent);
+      animation: scrollLine 2s ease-in-out infinite;
+    }
+    @keyframes scrollLine {
+      0%, 100% { transform: scaleY(1); opacity: 1; }
+      50% { transform: scaleY(0.4); opacity: 0.4; }
+    }
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── SECTION WRAPPER ──────────────────────────────────── */
+    section { padding: 100px 0; }
+    .container {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 0 48px;
+    }
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 4vw, 2.75rem);
+      font-weight: 700;
+      color: var(--cream);
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .section-title em {
+      font-style: italic;
+      color: var(--gold);
+    }
+    .section-sub {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 480px;
+    }
+    .section-header { margin-bottom: 56px; }
+
+    /* ─── SERVICES ─────────────────────────────────────────── */
+    #services { background: var(--bg2); }
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .service-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 28px 28px 26px;
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+      transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      transform: scaleX(0);
+      transition: transform 0.4s ease;
+    }
+    .service-card:hover::before { transform: scaleX(1); }
+    .service-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(201,168,76,0.22);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4), 0 0 20px rgba(201,168,76,0.06);
+    }
+    .service-icon {
+      width: 44px; height: 44px;
+      background: rgba(201,168,76,0.08);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      margin-bottom: 18px;
+    }
+    .service-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--cream);
+      margin-bottom: 8px;
+    }
+    .service-desc {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .service-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      padding-top: 16px;
+    }
+    .service-price {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--gold);
+      text-shadow: 0 0 20px rgba(201,168,76,0.3);
+    }
+    .service-duration {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      padding: 4px 12px;
+      border-radius: 100px;
+      font-weight: 500;
+    }
+
+    /* ─── HOW IT WORKS ─────────────────────────────────────── */
+    #how { background: var(--bg); }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .step-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 36px 28px 32px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    .step-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+      opacity: 0;
+      transition: opacity 0.35s;
+    }
+    .step-card:hover::after { opacity: 1; }
+    .step-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(201,168,76,0.18);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+    }
+    .step-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      font-weight: 700;
+      color: rgba(201,168,76,0.12);
+      line-height: 1;
+      margin-bottom: 20px;
+      letter-spacing: -0.02em;
+    }
+    .step-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--cream);
+      margin-bottom: 12px;
+    }
+    .step-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ─── ABOUT ────────────────────────────────────────────── */
+    #about { background: var(--bg2); }
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+    .about-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 36px;
+    }
+    .about-card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: var(--cream);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .about-card-title .icon { color: var(--gold); font-size: 1.1rem; }
+    .hours-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .hours-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .hours-list li:last-child { border-bottom: none; padding-bottom: 0; }
+    .hours-list .day { color: var(--text-muted); }
+    .hours-list .time { color: var(--cream); font-weight: 500; }
+    .hours-list .closed { color: rgba(255,100,100,0.7); font-weight: 500; }
+    .address-block {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .address-block strong { color: var(--cream); display: block; margin-bottom: 4px; }
+    .why-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .why-list li {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .why-list .check {
+      color: var(--gold);
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .cta-box {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, rgba(201,168,76,0.07) 0%, rgba(201,168,76,0.02) 100%);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 10px;
+      padding: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+    .cta-box-text h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--cream);
+      margin-bottom: 8px;
+    }
+    .cta-box-text p { color: var(--text-muted); font-size: 0.95rem; }
+
+    /* ─── FOOTER ───────────────────────────────────────────── */
+    footer {
+      background: var(--bg);
+      border-top: 1px solid rgba(201,168,76,0.08);
+      padding: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .footer-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--cream);
+    }
+    .footer-brand span { color: var(--gold); }
+    .footer-hours { font-size: 0.8rem; color: var(--text-muted); }
+    .footer-ai { font-size: 0.75rem; color: rgba(138,133,117,0.6); letter-spacing: 0.04em; }
+    .footer-ai span { color: var(--gold-dim); }
+
+    /* ─── VOICE OVERLAY ────────────────────────────────────── */
+    #voiceOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: rgba(4,4,6,0.92);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      padding: 24px;
+    }
+    #voiceOverlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    #callUI {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      width: 100%;
+      max-width: 700px;
+    }
+    #callUI.visible {
+      display: flex;
+    }
+    .vo-close {
+      position: absolute;
+      top: 28px; right: 36px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-muted);
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s, color 0.2s;
+    }
+    .vo-close:hover { background: rgba(255,255,255,0.12); color: var(--cream); }
+    .vo-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--cream);
+      text-align: center;
+    }
+    #voStatus {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+    .vo-orb-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .vo-orb {
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 35%, rgba(201,168,76,0.22), rgba(201,168,76,0.06) 60%, transparent);
+      border: 1.5px solid rgba(201,168,76,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      position: relative;
+      z-index: 1;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .vo-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1.5px solid rgba(201,168,76,0.2);
+    }
+    #voiceOverlay.connected .vo-ring {
+      animation: orbRing 1.6s ease-out infinite;
+    }
+    #voiceOverlay.connected .vo-orb {
+      border-color: var(--gold);
+      box-shadow: 0 0 40px rgba(201,168,76,0.25);
+    }
+    @keyframes orbRing {
+      0%   { width: 120px; height: 120px; opacity: 0.6; }
+      100% { width: 200px; height: 200px; opacity: 0; }
+    }
+    #voTranscript {
+      width: 95%;
+      max-width: 700px;
+      max-height: 350px;
+      overflow-y: auto;
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      scroll-behavior: smooth;
+    }
+    #voTranscript::-webkit-scrollbar { width: 4px; }
+    #voTranscript::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); border-radius: 2px; }
+    .transcript-line {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+    .transcript-line .speaker {
+      font-weight: 600;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+      padding-top: 2px;
+      min-width: 38px;
+    }
+    .transcript-line.sagar .speaker { color: var(--gold); }
+    .transcript-line.you .speaker { color: rgba(180,220,180,0.85); }
+    .transcript-line .text { color: var(--text); }
+    .vo-hint {
+      font-size: 0.8rem;
+      color: rgba(138,133,117,0.5);
+      text-align: center;
+      max-width: 360px;
+    }
+    #voEndBtn {
+      background: rgba(200,50,50,0.75);
+      border: 1px solid rgba(200,50,50,0.4);
+      color: #fff;
+      padding: 12px 32px;
+      border-radius: 4px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      display: none;
+      transition: background 0.2s;
+    }
+    #voEndBtn:hover { background: rgba(220,50,50,0.9); }
+    #voiceOverlay.connected #voEndBtn { display: inline-block; }
+
+    /* ─── SCROLL REVEAL ────────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── RESPONSIVE ───────────────────────────────────────── */
+    @media (max-width: 900px) {
+      nav { padding: 16px 24px; }
+      .nav-links { display: none; }
+      .container { padding: 0 24px; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .about-grid { grid-template-columns: 1fr; }
+      .cta-box { flex-direction: column; text-align: center; justify-content: center; }
+      footer { flex-direction: column; text-align: center; align-items: center; }
+    }
+    @media (max-width: 600px) {
+      .services-grid { grid-template-columns: 1fr; }
+      .hero-buttons { flex-direction: column; align-items: center; }
+    }
+  </style>
 </head>
 <body>
-<div>
-<h1>Naturals Salon</h1>
-<p>Our booking system is currently offline for maintenance. Please try again later.</p>
-</div>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-brand">Naturals <span>Salon</span></div>
+    <ul class="nav-links">
+      <li><a href="#services">Services</a></li>
+      <li><a href="#how">How It Works</a></li>
+      <li><a href="#about">Visit Us</a></li>
+    </ul>
+    <button class="nav-cta" onclick="openVoice()">Book Appointment</button>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-bloom"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow">
+        <span class="pulse-dot"></span>
+        Sarjapura, Bangalore
+      </div>
+      <h1 class="hero-h1">
+        <span class="line1">Premium Men's</span>
+        <span class="line2">Grooming</span>
+      </h1>
+      <p class="hero-sub">Book with Sagar, your AI receptionist. Choose your service, pick a time, and walk in ready.</p>
+      <div class="hero-buttons">
+        <button class="btn-primary" onclick="openVoice()">Book Appointment</button>
+        <a href="#services" class="btn-ghost">View Services</a>
+      </div>
+    </div>
+    <div class="scroll-indicator">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section id="services">
+    <div class="container">
+      <div class="section-header reveal">
+        <p class="section-label">Our Services</p>
+        <h2 class="section-title">Men's Grooming <em>Done Right</em></h2>
+        <p class="section-sub">Expert cuts, trims, and treatments by skilled stylists. All services for men.</p>
+      </div>
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="service-icon">&#9986;&#65039;</div>
+          <div class="service-name">Haircut</div>
+          <div class="service-desc">Classic men's cut, styled to perfection. Every line, every detail.</div>
+          <div class="service-footer">
+            <span class="service-price">&#8377;300</span>
+            <span class="service-duration">45 mins</span>
+          </div>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">&#128298;</div>
+          <div class="service-name">Beard Trim</div>
+          <div class="service-desc">Shape, trim &amp; line-up. Clean edges for a sharp, confident look.</div>
+          <div class="service-footer">
+            <span class="service-price">&#8377;150</span>
+            <span class="service-duration">20 mins</span>
+          </div>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">&#128142;</div>
+          <div class="service-name">Haircut + Beard</div>
+          <div class="service-desc">The complete package — fresh cut and a clean beard in one visit.</div>
+          <div class="service-footer">
+            <span class="service-price">&#8377;400</span>
+            <span class="service-duration">65 mins</span>
+          </div>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">&#127807;</div>
+          <div class="service-name">Head Massage</div>
+          <div class="service-desc">Relaxing scalp massage therapy. Melt away stress, boost circulation.</div>
+          <div class="service-footer">
+            <span class="service-price">&#8377;200</span>
+            <span class="service-duration">30 mins</span>
+          </div>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">&#10024;</div>
+          <div class="service-name">Face Cleanup</div>
+          <div class="service-desc">Deep cleanse &amp; refreshing facial. Cleaner skin, clearer confidence.</div>
+          <div class="service-footer">
+            <span class="service-price">&#8377;250</span>
+            <span class="service-duration">30 mins</span>
+          </div>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">&#11088;</div>
+          <div class="service-name">Haircut + Head Massage</div>
+          <div class="service-desc">Our most popular combo — a great cut followed by a relaxing massage.</div>
+          <div class="service-footer">
+            <span class="service-price">&#8377;500</span>
+            <span class="service-duration">75 mins</span>
+          </div>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">&#128081;</div>
+          <div class="service-name">Full Grooming</div>
+          <div class="service-desc">Haircut + Beard + Head Massage. The premium experience, start to finish.</div>
+          <div class="service-footer">
+            <span class="service-price">&#8377;600</span>
+            <span class="service-duration">95 mins</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how">
+    <div class="container">
+      <div class="section-header reveal">
+        <p class="section-label">How It Works</p>
+        <h2 class="section-title">Book in <em>Three Steps</em></h2>
+        <p class="section-sub">Sagar handles everything — no app, no form, just a quick voice conversation.</p>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">01</div>
+          <div class="step-title">Click Book</div>
+          <p class="step-desc">Tap the Book Appointment button anywhere on this page to connect directly with Sagar, your AI receptionist.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">02</div>
+          <div class="step-title">Talk to Sagar</div>
+          <p class="step-desc">Tell him which service you want and your preferred date and time. Sagar checks availability in real time and confirms your slot.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">03</div>
+          <div class="step-title">You're Booked</div>
+          <p class="step-desc">Get an instant confirmation email. Just show up at your time and let our stylists take care of the rest. Look great.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="container">
+      <div class="section-header reveal">
+        <p class="section-label">Visit Us</p>
+        <h2 class="section-title">We're in <em>Sarjapura</em></h2>
+        <p class="section-sub">Walk in or book ahead — we're here Monday through Saturday.</p>
+      </div>
+      <div class="about-grid">
+        <div class="about-card reveal">
+          <div class="about-card-title">
+            <span class="icon">&#128336;</span>
+            Hours &amp; Location
+          </div>
+          <ul class="hours-list">
+            <li><span class="day">Monday</span><span class="time">10:00 AM – 9:00 PM</span></li>
+            <li><span class="day">Tuesday</span><span class="time">10:00 AM – 9:00 PM</span></li>
+            <li><span class="day">Wednesday</span><span class="time">10:00 AM – 9:00 PM</span></li>
+            <li><span class="day">Thursday</span><span class="time">10:00 AM – 9:00 PM</span></li>
+            <li><span class="day">Friday</span><span class="time">10:00 AM – 9:00 PM</span></li>
+            <li><span class="day">Saturday</span><span class="time">10:00 AM – 9:00 PM</span></li>
+            <li><span class="day">Sunday</span><span class="closed">Closed</span></li>
+          </ul>
+          <div class="address-block">
+            <strong>Naturals Salon, Sarjapura</strong>
+            Sarjapura, Bangalore, Karnataka, India
+          </div>
+        </div>
+        <div class="about-card reveal">
+          <div class="about-card-title">
+            <span class="icon">&#128172;</span>
+            Why Naturals
+          </div>
+          <ul class="why-list">
+            <li><span class="check">&#10022;</span><span>Expert stylists trained in modern men's grooming techniques</span></li>
+            <li><span class="check">&#10022;</span><span>Premium products for cuts, trims, and skin treatments</span></li>
+            <li><span class="check">&#10022;</span><span>AI-powered booking — no hold music, no waiting on forms</span></li>
+            <li><span class="check">&#10022;</span><span>Instant email confirmation with every appointment</span></li>
+            <li><span class="check">&#10022;</span><span>Easy reschedule or cancel anytime, just call back</span></li>
+            <li><span class="check">&#10022;</span><span>Affordable pricing with no hidden charges</span></li>
+          </ul>
+        </div>
+        <div class="cta-box reveal">
+          <div class="cta-box-text">
+            <h3>Ready for a fresh look?</h3>
+            <p>Talk to Sagar right now and get booked in under two minutes.</p>
+          </div>
+          <button class="btn-primary" onclick="openVoice()">Talk to Sagar</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-brand">Naturals <span>Salon</span> — Sarjapura</div>
+    <div class="footer-hours">Mon–Sat &nbsp;|&nbsp; 10:00 AM – 9:00 PM &nbsp;|&nbsp; Bangalore</div>
+    <div class="footer-ai">Powered by <span>Sagar AI Receptionist</span></div>
+  </footer>
+
+  <!-- VOICE OVERLAY -->
+  <div id="voiceOverlay">
+    <button class="vo-close" onclick="closeVoice()">&#10005;</button>
+
+    <!-- PRE-CALL FORM (visible before call starts) -->
+    <div id="preCallForm">
+      <div class="vo-title">Before we connect you with Sagar</div>
+      <p id="formStatus" style="font-size:0.85rem;color:var(--gold);margin-bottom:1.5rem;min-height:1.2em;"></p>
+      <div class="form-fields">
+        <div class="form-group">
+          <label for="formName">Your Name</label>
+          <input type="text" id="formName" placeholder="e.g. Akshay" autocomplete="name" />
+        </div>
+        <div class="form-group">
+          <label for="formPhone">Mobile Number (10 digits)</label>
+          <input type="tel" id="formPhone" placeholder="e.g. 9876543210" maxlength="10" autocomplete="tel" />
+        </div>
+        <div class="form-group">
+          <label for="formEmail">Email Address</label>
+          <input type="email" id="formEmail" placeholder="e.g. you@gmail.com" autocomplete="email" />
+        </div>
+      </div>
+      <button class="btn-primary" id="formSubmitBtn" onclick="handleFormSubmit()" style="margin-top:1.5rem;width:100%;justify-content:center;">
+        Start Voice Call
+      </button>
+      <p class="form-skip" onclick="skipForm()">Or skip and talk to Sagar directly &rarr;</p>
+    </div>
+
+    <!-- CALL UI (hidden until call starts) -->
+    <div id="callUI">
+      <div class="vo-title">Naturals Salon Receptionist</div>
+      <p id="voStatus">Connecting to Sagar...</p>
+      <div class="vo-orb-wrap">
+        <div class="vo-ring"></div>
+        <div class="vo-orb">&#127897;&#65039;</div>
+      </div>
+      <div id="voTranscript">
+        <div class="transcript-line sagar">
+          <span class="speaker">Sagar</span>
+          <span class="text">Connecting...</span>
+        </div>
+      </div>
+      <p class="vo-hint">Speak naturally — tell Sagar the service you'd like and your preferred time.</p>
+      <button id="voEndBtn" onclick="endCall()">End Call</button>
+    </div>
+  </div>
+
+  <script>
+    /* ── Canvas Particle Animation ── */
+    (function() {
+      var canvas = document.getElementById('hero-canvas');
+      var ctx = canvas.getContext('2d');
+      var W, H, particles = [];
+
+      function resize() {
+        W = canvas.width = canvas.offsetWidth;
+        H = canvas.height = canvas.offsetHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      var COUNT = 70;
+      var CONNECT_DIST = 130;
+
+      for (var i = 0; i < COUNT; i++) {
+        particles.push({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          vx: (Math.random() - 0.5) * 0.35,
+          vy: (Math.random() - 0.5) * 0.35,
+          r: Math.random() * 2.2 + 0.8,
+          a: Math.random() * 0.6 + 0.25
+        });
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        for (var i = 0; i < particles.length; i++) {
+          var p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0 || p.x > W) p.vx *= -1;
+          if (p.y < 0 || p.y > H) p.vy *= -1;
+        }
+        for (var i = 0; i < particles.length; i++) {
+          for (var j = i + 1; j < particles.length; j++) {
+            var dx = particles[i].x - particles[j].x;
+            var dy = particles[i].y - particles[j].y;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < CONNECT_DIST) {
+              var opacity = (1 - dist / CONNECT_DIST) * 0.3;
+              ctx.beginPath();
+              ctx.strokeStyle = 'rgba(201,168,76,' + opacity + ')';
+              ctx.lineWidth = 0.8;
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.stroke();
+            }
+          }
+        }
+        for (var i = 0; i < particles.length; i++) {
+          var p = particles[i];
+          // Glow effect
+          ctx.save();
+          ctx.shadowColor = 'rgba(201,168,76,0.6)';
+          ctx.shadowBlur = p.r * 4;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(201,168,76,' + p.a + ')';
+          ctx.fill();
+          ctx.restore();
+        }
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    /* ── Scroll Reveal ── */
+    var revealEls = document.querySelectorAll('.reveal, .service-card, .step-card');
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          var el = entry.target;
+          var siblings = Array.from(el.parentElement.children);
+          var idx = siblings.indexOf(el);
+          setTimeout(function() {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+          }, idx * 80);
+          observer.unobserve(el);
+        }
+      });
+    }, { threshold: 0.1 });
+    revealEls.forEach(function(el) { observer.observe(el); });
+
+    /* ── Voice Overlay ── */
+    var N8N_URL = 'https://carmel-confirmatory-dominatingly.ngrok-free.dev';  // Update when ngrok restarts
+    var clientInfo = null;  // Stores {name, phone, email, isNew}
+
+    function openVoice() {
+      document.getElementById('voiceOverlay').classList.add('active');
+      // Show the pre-call form, hide the call UI
+      document.getElementById('preCallForm').style.display = 'flex';
+      document.getElementById('callUI').style.display = 'none';
+      document.getElementById('formStatus').textContent = '';
+      document.getElementById('voiceOverlay').classList.remove('connected');
+    }
+
+    // Handle form submission — lookup client, then start call
+    async function handleFormSubmit() {
+      var name = document.getElementById('formName').value.trim();
+      var phone = document.getElementById('formPhone').value.trim();
+      var email = document.getElementById('formEmail').value.trim();
+      var statusEl = document.getElementById('formStatus');
+      var submitBtn = document.getElementById('formSubmitBtn');
+
+      // Validate
+      if (!name) { statusEl.textContent = 'Please enter your name.'; return; }
+      if (!phone || phone.length !== 10 || !/^\d{10}$/.test(phone)) { statusEl.textContent = 'Please enter a valid 10-digit mobile number.'; return; }
+      if (!email || !email.includes('@')) { statusEl.textContent = 'Please enter a valid email address.'; return; }
+
+      statusEl.textContent = 'Checking your details...';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Please wait...';
+
+      var isNew = false;
+      var greeting = '';
+
+      try {
+        // 1. Lookup client by phone
+        var lookupRes = await fetch(N8N_URL + '/webhook/sagar-client-lookup', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({phone: phone})
+        });
+        var lookupData = await lookupRes.json();
+        var result = (lookupData.results && lookupData.results[0] && lookupData.results[0].result) || '';
+
+        if (result.toLowerCase().indexOf('new client') > -1 || result.toLowerCase().indexOf('not found') > -1) {
+          // New client — register them
+          statusEl.textContent = 'Setting up your profile...';
+          isNew = true;
+          await fetch(N8N_URL + '/webhook/OgZgHAVPrYetDIop/webhook/sagar-new-client', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({phone: phone, name: name, email: email})
+          });
+          greeting = 'Welcome, ' + name + '! I have added you to our system. How can I help you today?';
+        } else {
+          // Existing client
+          greeting = 'Welcome back, ' + name + '! How can I help you today?';
+        }
+
+        clientInfo = {name: name, phone: phone, email: email, isNew: isNew};
+      } catch (err) {
+        console.error('n8n lookup error:', err);
+        // Fallback — start call anyway, let Sagar handle it
+        greeting = 'Hi ' + name + '! How can I help you today?';
+        clientInfo = {name: name, phone: phone, email: email, isNew: false};
+      }
+
+      // Switch to call UI
+      startCallWithGreeting(greeting);
+    }
+
+    // Skip form — start call without pre-lookup
+    function skipForm() {
+      clientInfo = null;
+      startCallWithGreeting(null);
+    }
+
+    function startCallWithGreeting(customGreeting) {
+      document.getElementById('preCallForm').style.display = 'none';
+      document.getElementById('callUI').style.display = 'flex';
+      document.getElementById('voStatus').textContent = 'Connecting to Sagar...';
+      document.getElementById('voTranscript').innerHTML =
+        '<div class="transcript-line sagar"><span class="speaker">SAGAR</span><span class="text">Connecting...</span></div>';
+      document.getElementById('formSubmitBtn').disabled = false;
+      document.getElementById('formSubmitBtn').textContent = 'Start Voice Call';
+
+      // If we have a custom greeting, we need to re-init VAPI with assistantOverrides
+      // The HTML script tag SDK doesn't easily support per-call overrides,
+      // so we pass the info and let the default VAPI button start the call
+      // The firstMessage override happens via the SDK config
+
+      if (window._vapiReady && window._vapiStartCall) {
+        window._vapiStartCall(customGreeting);
+      } else {
+        document.getElementById('voStatus').textContent = 'Voice SDK loading... please wait a moment.';
+        // Retry until SDK is ready
+        var retryCount = 0;
+        var retry = setInterval(function() {
+          retryCount++;
+          if (window._vapiReady && window._vapiStartCall) {
+            clearInterval(retry);
+            window._vapiStartCall(customGreeting);
+          } else if (retryCount > 20) {
+            clearInterval(retry);
+            document.getElementById('voStatus').textContent = 'Could not load voice SDK. Please refresh and try again.';
+          }
+        }, 500);
+      }
+    }
+
+    function closeVoice() {
+      if (window.vapiClient) try { window.vapiClient.stop(); } catch(e) {}
+      document.getElementById('voiceOverlay').classList.remove('active', 'connected');
+      document.getElementById('preCallForm').style.display = 'flex';
+      document.getElementById('callUI').className = '';
+    }
+
+    function endCall() {
+      if (window.vapiClient) try { window.vapiClient.stop(); } catch(e) {}
+      document.getElementById('voStatus').textContent = 'Call ended';
+      document.getElementById('voiceOverlay').classList.remove('connected');
+      setTimeout(function() {
+        document.getElementById('voiceOverlay').classList.remove('active');
+        document.getElementById('preCallForm').style.display = 'flex';
+        document.getElementById('callUI').className = '';
+      }, 1500);
+    }
+
+    // Expose addLine to global scope for the ESM module to use
+    window.addLine = function(speaker, text) {
+      var wrap = document.getElementById('voTranscript');
+      var div = document.createElement('div');
+      div.className = 'transcript-line ' + (speaker.toLowerCase() === 'sagar' ? 'sagar' : 'you');
+      div.innerHTML = '<span class="speaker">' + speaker.toUpperCase() + '</span><span class="text">' + text + '</span>';
+      wrap.appendChild(div);
+      wrap.scrollTop = wrap.scrollHeight;
+    }
+
+    /* ── VAPI SDK (HTML script tag — proven to work) ── */
+    var VAPI_KEY = '5f73b5e0-a495-4e3d-bae6-7fb4dbcb505b';
+    var ASST_ID  = '55c85095-48a8-4741-96f2-34e4968934eb';
+    var vapiInstance = null;
+
+    function initVapi(overrides) {
+      // Remove old VAPI button if re-initializing
+      var oldBtn = document.querySelector('.vapi-btn');
+      if (oldBtn) oldBtn.remove();
+
+      var runConfig = {
+        apiKey: VAPI_KEY,
+        assistant: ASST_ID,
+        config: {
+          position: 'bottom-right',
+          offset: '20px',
+          width: '50px',
+          height: '50px',
+          idle:    { color: 'rgb(201,168,76)', type: 'round', title: '', subtitle: '' },
+          loading: { color: 'rgb(154,122,53)', type: 'round', title: '', subtitle: '' },
+          active:  { color: 'rgb(196,64,64)',  type: 'round', title: '', subtitle: '' }
+        }
+      };
+
+      // Add overrides if provided (firstMessage, variableValues)
+      if (overrides) {
+        runConfig.assistantOverrides = overrides;
+      }
+
+      vapiInstance = window.vapiSDK.run(runConfig);
+      window.vapiClient = vapiInstance;
+      window._vapiReady = true;
+
+      if (vapiInstance) {
+        vapiInstance.on('call-start', function() {
+          document.getElementById('voStatus').textContent = 'Talking to Sagar';
+          document.getElementById('voiceOverlay').classList.add('connected');
+          document.getElementById('voTranscript').innerHTML = '';
+        });
+        vapiInstance.on('call-end', function() {
+          document.getElementById('voStatus').textContent = 'Call ended — Thank you!';
+          document.getElementById('voiceOverlay').classList.remove('connected');
+          setTimeout(function() {
+            document.getElementById('voiceOverlay').classList.remove('active');
+            document.getElementById('preCallForm').style.display = 'flex';
+            document.getElementById('callUI').className = '';
+          }, 2500);
+        });
+        vapiInstance.on('error', function(err) {
+          console.error('VAPI error:', err);
+          document.getElementById('voStatus').textContent = 'Connection error. Please try again.';
+        });
+        vapiInstance.on('message', function(msg) {
+          if (msg.type === 'transcript' && msg.transcriptType === 'final') {
+            window.addLine(msg.role === 'assistant' ? 'Sagar' : 'You', msg.transcript);
+          }
+        });
+      }
+    }
+
+    // Load the VAPI SDK script
+    (function(d, t) {
+      var g = d.createElement(t), s = d.getElementsByTagName(t)[0];
+      g.src = 'https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js';
+      g.defer = true; g.async = true;
+      s.parentNode.insertBefore(g, s);
+      g.onload = function() {
+        // Initialize without overrides (default)
+        initVapi(null);
+      };
+    })(document, 'script');
+
+    // Called by the form submit or skip — starts the actual call
+    window._vapiStartCall = function(customGreeting) {
+      document.getElementById('preCallForm').style.display = 'none';
+      document.getElementById('callUI').className = 'visible';
+      document.getElementById('voStatus').textContent = 'Connecting to Sagar...';
+      document.getElementById('voTranscript').innerHTML =
+        '<div class="transcript-line sagar"><span class="speaker">SAGAR</span><span class="text">Connecting...</span></div>';
+      document.getElementById('formSubmitBtn').disabled = false;
+      document.getElementById('formSubmitBtn').textContent = 'Start Voice Call';
+
+      // Build overrides from client info
+      var overrides = null;
+      var info = window.clientInfo;
+      if (customGreeting || info) {
+        overrides = {};
+        if (customGreeting) overrides.firstMessage = customGreeting;
+        if (info) {
+          overrides.variableValues = {
+            clientName: info.name || '',
+            clientPhone: info.phone || '',
+            clientEmail: info.email || '',
+            clientStatus: info.isNew ? 'new' : 'returning'
+          };
+        }
+      }
+
+      // Re-initialize VAPI with overrides if needed, then click the button
+      if (overrides && window.vapiSDK) {
+        initVapi(overrides);
+      }
+
+      // Click the VAPI button to start
+      setTimeout(function() {
+        var btn = document.querySelector('.vapi-btn');
+        if (btn) {
+          btn.click();
+        } else {
+          document.getElementById('voStatus').textContent = 'Voice SDK loading... please wait and try again.';
+        }
+      }, 500);
+    };
+  </script>
 </body>
 </html>
