@@ -61,6 +61,16 @@ A comprehensive record of every bug found, every system prompt improvement, and 
 | 29 | DNS resolution failed in Docker container | Medium | Intermittent Docker networking issue | `docker restart n8n` fixes it | Documented as known issue |
 | 30 | updateAppointment VAPI tool had no server URL | Critical | PATCH to update tool params overwrote the server object | Re-set the server URL after every tool parameter update | Tool always reachable |
 
+### Category: Voice Agent — Form Data Not Reaching VAPI
+
+| # | Issue | Severity | Root Cause | Fix | Outcome |
+|---|---|---|---|---|---|
+| 36 | Sagar fabricated email (e.g., akshaygoyal@gmail.com) instead of using form-submitted email | Critical | System prompt in VAPI was stale — never updated after adding `{{clientEmail}}` variable support. Local file was updated but never pushed to VAPI via API | Pushed updated system prompt to VAPI via `PATCH /assistant/{id}` API call. Added PRE-COLLECTED CLIENT INFO section with `{{clientName}}`, `{{clientPhone}}`, `{{clientEmail}}`, `{{clientStatus}}` | Sagar now uses exact form email; no more fabricated addresses |
+| 37 | Sagar changed name spelling (e.g., "Akshay Goyal" instead of form-submitted "Akshay Goel") | Medium | System prompt had no instruction to preserve exact name spelling from form | Added explicit rule: "Use the EXACT spelling from {{clientName}} — never re-spell or alter it" | Name spelling preserved as entered in form |
+| 38 | Voice broke mid-sentence / sentences appeared in chat but weren't spoken fully | High | Voice speed too aggressive (1.15x), no response delay buffer, interruption sensitivity too high | Reduced voice speed to 1.05x, added `responseDelaySeconds: 0.4`, set interruption sensitivity to medium | TTS completes sentences before allowing interruption |
+| 39 | Past appointments not retrievable — "show my appointments" only searched future | Medium | System prompt only instructed lookupAppointment for "today + 30 days" forward | Added rules: past appointments use afterTime = 30 days ago; "my appointments" checks both past and future | Full appointment history accessible |
+| 40 | New client webhook URL had double `/webhook/` path segment | Medium | Copy-paste error: `/webhook/OgZgHAVPrYetDIop/webhook/sagar-new-client` | Fixed to `/webhook/sagar-new-client` | New client registration works from website form |
+
 ### Category: Website / SDK
 
 | # | Issue | Severity | Root Cause | Fix | Outcome |
@@ -88,6 +98,9 @@ A comprehensive record of every bug found, every system prompt improvement, and 
 | v9 | Indian filler phrases mandatory, Western phrases BANNED | "Just a sec" sounds unnatural |
 | v10 | endCall function + proactive call ending | Calls never ended |
 | v11 | Filter appointments by caller's name | Showed everyone's appointments |
+| v12 | Speed & naturalness rewrite — 1 sentence per turn, minimal fillers, no confirmation loops | Agent too slow, repetitive, robotic |
+| v13 | Added `{{clientName}}`/`{{clientEmail}}`/`{{clientPhone}}` variable support from website form | Agent fabricated email, ignored form data |
+| v14 | Past appointment lookup + complete sentence rule + VAPI timing tuning | Couldn't view past bookings, voice clipping |
 
 ---
 
@@ -108,3 +121,5 @@ A comprehensive record of every bug found, every system prompt improvement, and 
 - Google Sheets rate limit of 60 reads/minute can cause failures during heavy testing
 - Speech-to-text still occasionally mishears numbers — pre-call form mitigates this
 - LLM may still occasionally use banned filler phrases despite explicit rules
+- System prompt changes to local file must be pushed to VAPI via API — editing the file alone has no effect
+- Voice clipping can still occur on slow networks despite responseDelaySeconds tuning

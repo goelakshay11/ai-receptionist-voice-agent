@@ -1191,7 +1191,7 @@
           // New client — register them
           statusEl.textContent = 'Setting up your profile...';
           isNew = true;
-          await fetch(N8N_URL + '/webhook/OgZgHAVPrYetDIop/webhook/sagar-new-client', {
+          await fetch(N8N_URL + '/webhook/sagar-new-client', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({phone: phone, name: name, email: email})
@@ -1377,6 +1377,11 @@
             clientStatus: info.isNew ? 'new' : 'returning'
           };
         }
+      }
+
+      // Debug: log overrides to verify form data reaches VAPI
+      if (overrides) {
+        console.log('[Sagar] VAPI overrides:', JSON.stringify(overrides.variableValues, null, 2));
       }
 
       // Re-initialize VAPI with overrides if needed, then click the button

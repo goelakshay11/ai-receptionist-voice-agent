@@ -325,6 +325,53 @@ Added a pre-call form on the website that collects name, phone, and email BEFORE
 
 ---
 
+## Phase 9: Voice Speed, Form Data Pipeline & VAPI Sync
+
+### Problem 1: Agent Too Slow and Repetitive
+Sagar spoke like a robot — repeating filler phrases before every tool call ("Give me a few seconds please... let me check... one moment..."), asking for confirmation multiple times, and restating information the caller already provided. Calls took 2-3x longer than necessary.
+
+### Fix
+Complete rewrite of the system prompt focused on speed and naturalness:
+- **1 sentence per turn** (down from 2)
+- **Filler phrases: 0 or 1, never more** — replaced mandatory 5-phrase rotation with optional short fillers ("One sec." / "Checking.")
+- **No confirmation loops** — if intent is clear, proceed. One "Should I book it?" max
+- **Immediate tool calls** — if all info is available, call the tool without narrating
+
+### Problem 2: Form Email Ignored, Agent Fabricated Wrong Email
+Users filled in their email on the website form (e.g., `goelakshay11@gmail.com`), but Sagar fabricated a different email from the spoken name (e.g., `akshaygoyal@gmail.com`). Confirmation emails went to the wrong address.
+
+### Root Cause
+**The system prompt in VAPI was stale.** The local `vapi/system-prompt.md` file had been updated with `{{clientName}}`, `{{clientEmail}}`, `{{clientPhone}}` template variables, but the changes were never pushed to VAPI's servers. The live assistant was still running the old prompt with no awareness of form data.
+
+### Fix
+1. Added a `PRE-COLLECTED CLIENT INFO` section to the system prompt instructing Sagar to use `{{clientName}}`, `{{clientEmail}}`, `{{clientPhone}}` from the form and never re-ask or fabricate these values
+2. Pushed the updated prompt to VAPI via `PATCH /assistant/{id}` API call
+3. Added explicit rules: "Use the EXACT spelling from {{clientName}}", "Never guess or construct an email from the name"
+
+### Problem 3: Voice Breaking Mid-Sentence
+Sentences appeared in the chat transcript but the voice agent didn't speak them fully — cutting off mid-word.
+
+### Fix
+Tuned VAPI voice settings via API:
+- `responseDelaySeconds: 0.4` — gives TTS a buffer to complete sentences
+- `silenceTimeoutSeconds: 30` (down from 45)
+- Interruption sensitivity: medium (was too aggressive)
+- Added system prompt rule: "Always finish your sentence fully"
+
+### Problem 4: Past Appointments Not Retrievable
+"Show me my appointments" only searched forward (next 30 days). Callers asking about past bookings got no results.
+
+### Fix
+Updated system prompt with bidirectional lookup: past appointments use `afterTime = 30 days ago`, and a generic "my appointments" query checks both past 30 days and next 30 days.
+
+### Lesson
+**Editing a local file is not deploying it.** When the system prompt lives in an external service (VAPI), the local file is just a source-of-truth reference — it must be actively pushed via API to take effect. This caused hours of confusion debugging why the agent wasn't following new rules.
+
+### Bonus Bug: Double Webhook Path
+The new client registration webhook URL in the website had a copy-paste error: `/webhook/OgZgHAVPrYetDIop/webhook/sagar-new-client` (double `/webhook/`). Fixed to `/webhook/sagar-new-client`.
+
+---
+
 ## Key Architectural Decisions
 
 ### Phone as Primary Identifier

@@ -68,6 +68,9 @@ Customer (Phone/Web)
 - **Confirmation Emails** — Gmail sends booking/reschedule/cancellation emails to the customer
 - **Web Interface** — Browser-based voice call widget for web visitors (VAPI Web SDK)
 - **Variable Duration Booking** — End time calculated from service type, not hardcoded
+- **Pre-Call Form Integration** — Website form passes name/phone/email to VAPI via `assistantOverrides.variableValues`, eliminating voice-based data entry errors
+- **Past Appointment Lookup** — Callers can view both past and upcoming appointments
+- **Fast, Natural Conversation** — Optimized for 1-sentence responses, minimal fillers, no repetitive confirmation loops
 
 ---
 
